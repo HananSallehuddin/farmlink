@@ -31,6 +31,9 @@ class HomepageSeller extends StatelessWidget {
                     borderSide: BorderSide.none,
                   ),
                 ),
+                onChanged: (value) {
+                  Get.find<ProductController>().filterProduce(value);
+                },
               ),
             ),
             SizedBox(width: 10),
@@ -57,7 +60,7 @@ class HomepageSeller extends StatelessWidget {
           //display product in 2x2 grid
           Expanded(
             child: Obx(() {
-              if (productController.produceList.isEmpty) { 
+              if (productController.filteredProduceList.isEmpty) { 
                 return Center(child: Text('No products uploaded yet.'));
               }
               return GridView.builder(
@@ -67,9 +70,9 @@ class HomepageSeller extends StatelessWidget {
                   mainAxisSpacing: 10, //space between rows
                   childAspectRatio: 0.7, //adjust aspect ratio to control item size
                 ),
-                itemCount: productController.produceList.length,
+                itemCount: productController.filteredProduceList.length,
                 itemBuilder: (context, index) {
-                  final product = productController.produceList[index];
+                  final product = productController.filteredProduceList[index];
                   return GestureDetector(
                     onLongPress: (){
                       _showDeleteConfirmation(context, productController, product);
@@ -91,7 +94,16 @@ class HomepageSeller extends StatelessWidget {
                                   fit: BoxFit.cover,
                                   width: double.infinity,
                                 )
-                                : Placeholder(fallbackHeight: 100), //if no image, show palceholder
+                                : Container(
+                                    color: Colors.grey,  // Grey background when no image is available
+                                    width: double.infinity,
+                                    child: Center(
+                                      child: Icon(
+                                        Icons.image,  // Optional: icon to indicate no image
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ), //if no image, show palceholder
                                 ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),

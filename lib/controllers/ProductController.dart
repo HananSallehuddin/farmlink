@@ -8,7 +8,8 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ProductController extends GetxController {
-  var produceList = <LocalProduce>[].obs;
+  //var produceList = <LocalProduce>[].obs;
+  var filteredProduceList = <LocalProduce>[].obs;
   var productName = ''.obs;
   var description = ''.obs;
   var price = 0.0.obs;
@@ -21,47 +22,10 @@ class ProductController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    //retrieve current user id
     currentUserID = FirebaseAuth.instance.currentUser!.uid; 
-    // Retrieve current user ID
+    //filteredProduceList.value = produceList;
   }
-
-  // // Add product to product listing
-  // Future<void> addProductToListing() async {
-  //   try {
-  //     // Upload each image to Firebase Storage
-  //     List<String> uploadedImageUrls = await uploadAllImages();
-  //     if (uploadedImageUrls.isEmpty){
-  //       Get.snackbar('Error', 'No images were uploaded');
-  //     }
-
-  //     // for (var imagePath in imageUrls) {
-  //     //   String imageUrl = await uploadImageToStorage(imagePath);
-  //     //   uploadedImageUrls.add(imageUrl);
-  //     // }
-  //     final productId = FirebaseFirestore.instance.collection('products').doc().id;
-
-  //     // Create new product object with the uploaded image URLs
-  //     LocalProduce newProduce = LocalProduce(
-  //       pid: productId,
-  //       productName: productName.value,
-  //       price: price.value,
-  //       description: description.value,
-  //       imageUrls: uploadedImageUrls, // Use uploaded image URLs
-  //       stock: stock.value,
-  //       expiryDate: expiryDate.value!,
-  //       userRef: FirebaseFirestore.instance.collection('users').doc(currentUserID), // Link product to current user
-  //     );
-
-  //     // Add product to Firebase Firestore
-  //     await FirebaseFirestore.instance.collection('localProduce').add(newProduce.toJson());
-  //     produceList.add(newProduce); // Add product to local list
-  //     Get.snackbar('Success', 'Product added successfully');
-  //     imageUrls.clear();
-  //     Get.back();
-  //   } catch (e) {
-  //     Get.snackbar('Error', 'Failed to add product: $e');
-  //   }
-  // }
 
   Future<void> addProductToListing() async {
   try {
@@ -91,7 +55,8 @@ class ProductController extends GetxController {
     // Add the product to Firestore
     await productRef.set(newProduce.toJson()); // Save the product to the localProduce collection
 
-    produceList.add(newProduce); // Add to local list
+    //produceList.add(newProduce); // Add to local list
+    filteredProduceList.add(newProduce);
     Get.snackbar('Success', 'Product added successfully');
     imageUrls.clear();
     Get.back();
@@ -100,29 +65,19 @@ class ProductController extends GetxController {
   }
 }
 
-  // Delete product from listing
-  // Future<void> deleteProductFromListing(String pid) async {
-  //   try {
-  //     LocalProduce deletedProduct = produceList.firstWhere((produce) => produce.pid == pid);
-  //     DocumentReference productRef = FirebaseFirestore.instance.collection('localProduce').doc(deletedProduct.pid);
-  //     await productRef.delete();
-  //     produceList.remove(deletedProduct);
-  //     Get.snackbar('Success', 'Product deleted successfully');
-  //   } catch (e) {
-  //     Get.snackbar('Error', 'Failed to delete product');
-  //   }
-  // }
+
   Future<void> deleteProductFromListing(String pid) async {
   try {
     // Assuming product is already selected, directly find it in the list
-    LocalProduce deletedProduct = produceList.firstWhere((produce) => produce.pid == pid);
+    LocalProduce deletedProduct = filteredProduceList.firstWhere((produce) => produce.pid == pid);
 
     // If found, delete the product from Firestore
     DocumentReference productRef = FirebaseFirestore.instance.collection('localProduce').doc(deletedProduct.pid);
     await productRef.delete();
 
     // Remove from the local list
-    produceList.remove(deletedProduct);
+    //produceList.remove(deletedProduct);
+    filteredProduceList.remove(deletedProduct);
 
     Get.snackbar('Success', 'Product deleted successfully');
   } catch (e) {
@@ -188,8 +143,12 @@ Future<List<String>> uploadAllImages() async {
     return [];
   }
 }
-
-// Future<void> loadProducts() async{
-//   final product
-// }
+void filterProduce(String query) {
+  if(query.isEmpty){
+    filteredProduceList.refresh();
+  } else{
+    filteredProduceList.value = filteredProduceList.where((produce) => 
+          produce.productName.toLowerCase().contains(query.toLowerCase())).toList();
+  }
+}
 }

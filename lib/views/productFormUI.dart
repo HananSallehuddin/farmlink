@@ -168,7 +168,7 @@ class productFormUI extends StatelessWidget {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
                     productController.addProductToListing().then((_) {
-                      //Get.back(); // Navigate back after saving
+                    Get.back(); // Navigate back after saving
                     });
                   }
                 },
