@@ -21,7 +21,7 @@ class LocalProduce {
     required this.expiryDate,
     this.userRef, //optional parameter to link product to user
   });
-  //convert to firestore-comaptible map
+  //convert to firestore-compatible map
   Map<String, dynamic> toJson() {
     return{
       'pid' : pid,

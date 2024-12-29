@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 
 class ProductController extends GetxController {
   var produceList = <LocalProduce>[].obs;
+  var filteredProduceList = <LocalProduce>[].obs;
   var productName = ''.obs;
   var description = ''.obs;
   var price = 0.0.obs;
@@ -22,46 +23,13 @@ class ProductController extends GetxController {
   void onInit() {
     super.onInit();
     currentUserID = FirebaseAuth.instance.currentUser!.uid; 
+    if (currentUserID.isEmpty) {
+      Get.snackbar('Error', 'User not authenticated');
+    }
+    fetchProduce();
+    //filteredProduceList.assignAll(produceList); // Initially show all products
     // Retrieve current user ID
   }
-
-  // // Add product to product listing
-  // Future<void> addProductToListing() async {
-  //   try {
-  //     // Upload each image to Firebase Storage
-  //     List<String> uploadedImageUrls = await uploadAllImages();
-  //     if (uploadedImageUrls.isEmpty){
-  //       Get.snackbar('Error', 'No images were uploaded');
-  //     }
-
-  //     // for (var imagePath in imageUrls) {
-  //     //   String imageUrl = await uploadImageToStorage(imagePath);
-  //     //   uploadedImageUrls.add(imageUrl);
-  //     // }
-  //     final productId = FirebaseFirestore.instance.collection('products').doc().id;
-
-  //     // Create new product object with the uploaded image URLs
-  //     LocalProduce newProduce = LocalProduce(
-  //       pid: productId,
-  //       productName: productName.value,
-  //       price: price.value,
-  //       description: description.value,
-  //       imageUrls: uploadedImageUrls, // Use uploaded image URLs
-  //       stock: stock.value,
-  //       expiryDate: expiryDate.value!,
-  //       userRef: FirebaseFirestore.instance.collection('users').doc(currentUserID), // Link product to current user
-  //     );
-
-  //     // Add product to Firebase Firestore
-  //     await FirebaseFirestore.instance.collection('localProduce').add(newProduce.toJson());
-  //     produceList.add(newProduce); // Add product to local list
-  //     Get.snackbar('Success', 'Product added successfully');
-  //     imageUrls.clear();
-  //     Get.back();
-  //   } catch (e) {
-  //     Get.snackbar('Error', 'Failed to add product: $e');
-  //   }
-  // }
 
   Future<void> addProductToListing() async {
   try {
@@ -93,6 +61,7 @@ class ProductController extends GetxController {
 
     produceList.add(newProduce); // Add to local list
     Get.snackbar('Success', 'Product added successfully');
+    //tgk balik ni
     imageUrls.clear();
     Get.back();
   } catch (e) {
@@ -100,18 +69,34 @@ class ProductController extends GetxController {
   }
 }
 
-  // Delete product from listing
-  // Future<void> deleteProductFromListing(String pid) async {
-  //   try {
-  //     LocalProduce deletedProduct = produceList.firstWhere((produce) => produce.pid == pid);
-  //     DocumentReference productRef = FirebaseFirestore.instance.collection('localProduce').doc(deletedProduct.pid);
-  //     await productRef.delete();
-  //     produceList.remove(deletedProduct);
-  //     Get.snackbar('Success', 'Product deleted successfully');
-  //   } catch (e) {
-  //     Get.snackbar('Error', 'Failed to delete product');
-  //   }
-  // }
+  Future<void> fetchProduce() async {
+  try {
+    // Fetch all documents from the 'localProduce' collection in Firestore
+    final querySnapshot = await FirebaseFirestore.instance.collection('localProduce').get();
+
+    // Convert Firestore documents into LocalProduce objects
+    final List<LocalProduce> products = querySnapshot.docs.map((doc) {
+      return LocalProduce.fromJson({
+        ...doc.data(), // Spread the map data
+        'pid': doc.id, // Add the document ID as 'pid'
+      });
+    }).toList();
+
+    // Update the observable produceList with the fetched products
+    produceList.assignAll(products);
+
+    // Sync the filteredProduceList with the produceList
+    filteredProduceList.assignAll(produceList);
+
+    // Notify success
+    Get.snackbar('Success', 'Products loaded successfully');
+  } catch (e) {
+    // Notify error
+    Get.snackbar('Error', 'Failed to fetch products: $e');
+    print('Error in fetchProduce: $e');
+  }
+}
+
   Future<void> deleteProductFromListing(String pid) async {
   try {
     // Assuming product is already selected, directly find it in the list
@@ -123,6 +108,8 @@ class ProductController extends GetxController {
 
     // Remove from the local list
     produceList.remove(deletedProduct);
+    //ni baru tambah
+    filterProduce('');
 
     Get.snackbar('Success', 'Product deleted successfully');
   } catch (e) {
@@ -161,13 +148,14 @@ class ProductController extends GetxController {
 
     final fileName = DateTime.now().toIso8601String();
     final ref = FirebaseStorage.instance.ref().child('localProduceImages/$fileName');
-    final uploadTask = await ref.putFile(File(filePath));
+    //upload file and get snapshot
+    final TaskSnapshot snapshot = await ref.putFile(File(filePath));
 
     // Ensure the upload task is complete
-    if (uploadTask.state == TaskState.success) {
+    if (snapshot.state == TaskState.success) {
       return await ref.getDownloadURL();
     } else {
-      throw Exception('Upload failed.');
+      throw Exception('Upload failed with state: ${snapshot.state}');
     }
   } catch (e) {
     Get.snackbar('Error', 'Failed to upload image: $e');
@@ -192,4 +180,12 @@ Future<List<String>> uploadAllImages() async {
 // Future<void> loadProducts() async{
 //   final product
 // }
+void filterProduce(String query) {
+  if(query.isEmpty){
+    filteredProduceList.assignAll(produceList);
+  } else{
+    filteredProduceList.value = produceList.where((produce) => 
+          produce.productName.toLowerCase().contains(query.toLowerCase())).toList();
+  }
+}
 }
