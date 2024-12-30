@@ -9,7 +9,7 @@ class LoginUI extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     //initialize LoginController using GetX
-    final loginController = Get.put(LoginController());
+    final loginController = Get.find<LoginController>();
     final _formKey = GlobalKey<FormState>(); // Form key for validation
     String? _email, _password; // Store email and password
 

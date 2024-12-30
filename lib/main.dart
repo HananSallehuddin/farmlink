@@ -1,3 +1,4 @@
+import 'package:farmlink/controllers/LoginController.dart';
 import 'package:farmlink/controllers/ProductController.dart';
 import 'package:farmlink/routes.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -9,6 +10,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   print("Firebase initialized");
+  Get.put(LoginController());
   Get.put(ProductController());
   runApp(const MyApp());
 }
@@ -26,7 +28,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       //sini nk tukar start mana
-      initialRoute: Routes.homepageSeller,
+      initialRoute: Routes.landing,
       getPages: Routes.pages,
     );
   }

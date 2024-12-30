@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:farmlink/controllers/LoginController.dart';
 import 'package:farmlink/models/LocalProduce.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -8,6 +9,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ProductController extends GetxController {
+  //variable to hold value from local produce class
   var produceList = <LocalProduce>[].obs;
   var filteredProduceList = <LocalProduce>[].obs;
   var productName = ''.obs;
@@ -17,6 +19,7 @@ class ProductController extends GetxController {
   var expiryDate = Rx<DateTime?>(null);
   late String currentUserID;  
   var imageUrls = <String>[].obs; // List to hold multiple image URLs
+  String userRole = '';
 
   // Called when controller is initialized
   @override
@@ -27,8 +30,6 @@ class ProductController extends GetxController {
       Get.snackbar('Error', 'User not authenticated');
     }
     fetchProduce();
-    //filteredProduceList.assignAll(produceList); // Initially show all products
-    // Retrieve current user ID
   }
 
   Future<void> addProductToListing() async {
@@ -41,12 +42,12 @@ class ProductController extends GetxController {
     }
 
     // Use the correct collection for storing the product
-    final productRef = FirebaseFirestore.instance.collection('localProduce').doc(); // This creates a doc in the 'localProduce' collection
-    final productId = productRef.id;  // Get the generated doc ID
+    final produceRef = FirebaseFirestore.instance.collection('localProduce').doc(); // This creates a doc in the 'localProduce' collection
+    final pid = produceRef.id;  // Get the generated doc ID
 
     // Create new product object
     LocalProduce newProduce = LocalProduce(
-      pid: productId, // Set the pid to the document ID
+      pid: pid, // Set the pid to the document ID
       productName: productName.value,
       price: price.value,
       description: description.value,
@@ -57,9 +58,10 @@ class ProductController extends GetxController {
     );
 
     // Add the product to Firestore
-    await productRef.set(newProduce.toJson()); // Save the product to the localProduce collection
+    await produceRef.set(newProduce.toJson()); // Save the product to the localProduce collection
 
     produceList.add(newProduce); // Add to local list
+    filterProduce('');
     Get.snackbar('Success', 'Product added successfully');
     //tgk balik ni
     imageUrls.clear();
@@ -69,55 +71,7 @@ class ProductController extends GetxController {
   }
 }
 
-  Future<void> fetchProduce() async {
-  try {
-    // Fetch all documents from the 'localProduce' collection in Firestore
-    final querySnapshot = await FirebaseFirestore.instance.collection('localProduce').get();
-
-    // Convert Firestore documents into LocalProduce objects
-    final List<LocalProduce> products = querySnapshot.docs.map((doc) {
-      return LocalProduce.fromJson({
-        ...doc.data(), // Spread the map data
-        'pid': doc.id, // Add the document ID as 'pid'
-      });
-    }).toList();
-
-    // Update the observable produceList with the fetched products
-    produceList.assignAll(products);
-
-    // Sync the filteredProduceList with the produceList
-    filteredProduceList.assignAll(produceList);
-
-    // Notify success
-    Get.snackbar('Success', 'Products loaded successfully');
-  } catch (e) {
-    // Notify error
-    Get.snackbar('Error', 'Failed to fetch products: $e');
-    print('Error in fetchProduce: $e');
-  }
-}
-
-  Future<void> deleteProductFromListing(String pid) async {
-  try {
-    // Assuming product is already selected, directly find it in the list
-    LocalProduce deletedProduct = produceList.firstWhere((produce) => produce.pid == pid);
-
-    // If found, delete the product from Firestore
-    DocumentReference productRef = FirebaseFirestore.instance.collection('localProduce').doc(deletedProduct.pid);
-    await productRef.delete();
-
-    // Remove from the local list
-    produceList.remove(deletedProduct);
-    //ni baru tambah
-    filterProduce('');
-
-    Get.snackbar('Success', 'Product deleted successfully');
-  } catch (e) {
-    Get.snackbar('Error', 'Failed to delete product: $e');
-  }
-}
-
-  // Pick multiple images
+// Pick multiple images
   Future<void> pickImage(ImageSource source) async {
     try {
       final picker = ImagePicker();
@@ -176,6 +130,113 @@ Future<List<String>> uploadAllImages() async {
     return [];
   }
 }
+
+  //ni fetch semua tanpa tgk current id
+//   Future<void> fetchProduce() async {
+//   try {
+//     // Fetch all documents from the 'localProduce' collection in Firestore
+//     final querySnapshot = await FirebaseFirestore.instance.collection('localProduce').get();
+
+//     // Convert Firestore documents into LocalProduce objects
+//     final List<LocalProduce> products = querySnapshot.docs.map((doc) {
+//       return LocalProduce.fromJson({
+//         ...doc.data(), // Spread the map data
+//         'pid': doc.id, // Add the document ID as 'pid'
+//       });
+//     }).toList();
+
+//     // Update the observable produceList with the fetched products
+//     produceList.assignAll(products);
+
+//     // Sync the filteredProduceList with the produceList
+//     filteredProduceList.assignAll(produceList);
+
+//     // Notify success
+//     Get.snackbar('Success', 'Products loaded successfully');
+//   } catch (e) {
+//     // Notify error
+//     Get.snackbar('Error', 'Failed to fetch products: $e');
+//     print('Error in fetchProduce: $e');
+//   }
+// }
+
+  Future<void> fetchProduce() async {
+  final loginController = Get.find<LoginController>();
+  String? role = await loginController.getUserRole();
+  print('User Role: $role');
+  if (role == 'Seller') {
+    try {
+      // Fetch products for the current Seller using currentUserID
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('localProduce')
+          .where(
+            'userRef',
+            isEqualTo: FirebaseFirestore.instance.collection('users').doc(currentUserID),
+          )
+          .get();
+
+      final List<LocalProduce> produces = querySnapshot.docs.map((doc) {
+        return LocalProduce.fromJson({
+          ...doc.data(),
+          'pid': doc.id,
+        });
+      }).toList();
+
+      produceList.assignAll(produces);
+      filteredProduceList.assignAll(produceList);
+
+      Get.snackbar('Success', 'Products for Seller loaded successfully');
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to fetch Seller products: $e');
+      print('Error in fetchProduce for Seller: $e');
+    }
+  } else if (role == 'Customer') {
+    
+    try {
+      // Fetch all products for Customers
+      final querySnapshot = await FirebaseFirestore.instance.collection('localProduce').get();
+
+      final List<LocalProduce> products = querySnapshot.docs.map((doc) {
+        return LocalProduce.fromJson({
+          ...doc.data(),
+          'pid': doc.id,
+        });
+      }).toList();
+
+      produceList.assignAll(products);
+      filteredProduceList.assignAll(produceList);
+
+      Get.snackbar('Success', 'Products for Customer loaded successfully');
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to fetch Customer products: $e');
+      print('Error in fetchProduce for Customer: $e');
+    }
+  } else {
+    print('Error: Role is not recognized or null');
+  }
+}
+
+  Future<void> deleteProductFromListing(String pid) async {
+  try {
+    // Assuming product is already selected, directly find it in the list
+    LocalProduce deletedProduct = produceList.firstWhere((produce) => produce.pid == pid);
+
+    // If found, delete the product from Firestore
+    DocumentReference productRef = FirebaseFirestore.instance.collection('localProduce').doc(deletedProduct.pid);
+    await productRef.delete();
+
+    // Remove from the local list
+    produceList.remove(deletedProduct);
+    //ni baru tambah
+    filterProduce('');
+
+    Get.snackbar('Success', 'Product deleted successfully');
+  } catch (e) {
+    Get.snackbar('Error', 'Failed to delete product: $e');
+  }
+}
+
+  
 
 // Future<void> loadProducts() async{
 //   final product
