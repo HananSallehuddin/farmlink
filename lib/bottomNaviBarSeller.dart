@@ -13,16 +13,6 @@ class bottomNavigationBarSeller extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          // Chat Button
-          IconButton(
-            icon: Icon(Icons.chat),
-            color: currentRoute == '/chat' ? Styles.primaryColor : Styles.subtitleColor,
-            onPressed: () {
-              if (currentRoute != '/chat') {
-                Get.toNamed('/chat');
-              }
-            },
-          ),
           // Home Button
           IconButton(
             icon: Icon(Icons.home),
@@ -33,9 +23,29 @@ class bottomNavigationBarSeller extends StatelessWidget {
               }
             },
           ),
+          // Chat Button
+          IconButton(
+            icon: Icon(Icons.chat),
+            color: currentRoute == '/chat' ? Styles.primaryColor : Styles.subtitleColor,
+            onPressed: () {
+              if (currentRoute != '/chat') {
+                Get.toNamed('/chat');
+              }
+            },
+          ),
+          // recycle produce button
+          IconButton(
+            icon: Icon(Icons.recycling),
+            color: currentRoute == '/recyclePage' ? Styles.primaryColor : Styles.subtitleColor,
+            onPressed: () {
+              if (currentRoute != '/recyclePage') {
+                Get.toNamed('/recyclePage');
+              }
+            },
+          ),
           // Orders Button
           IconButton(
-            icon: Icon(Icons.shopping_bag),
+            icon: Icon(Icons.receipt_long),
             color: currentRoute == '/orders' ? Styles.primaryColor : Styles.subtitleColor,
             onPressed: () {
               if (currentRoute != '/orders') {
@@ -46,10 +56,10 @@ class bottomNavigationBarSeller extends StatelessWidget {
           // Profile Button
           IconButton(
             icon: Icon(Icons.person),
-            color: currentRoute == '/profile' ? Styles.primaryColor : Styles.subtitleColor,
+            color: currentRoute == '/login' ? Styles.primaryColor : Styles.subtitleColor,
             onPressed: () {
-              if (currentRoute != '/profile') {
-                Get.toNamed('/profile');
+              if (currentRoute != '/login') {
+                Get.toNamed('/login');
               }
             },
           ),

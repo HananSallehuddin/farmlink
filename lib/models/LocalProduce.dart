@@ -9,6 +9,7 @@ class LocalProduce {
   int stock;
   DateTime expiryDate;
   DocumentReference? userRef;
+  String status;
 
   //constructor
   LocalProduce({
@@ -19,6 +20,7 @@ class LocalProduce {
     required this.imageUrls,
     required this.stock,
     required this.expiryDate,
+    this.status = 'available', //default status
     this.userRef, //optional parameter to link product to user
   });
   //convert to firestore-compatible map
@@ -30,7 +32,8 @@ class LocalProduce {
       'description' : description,
       'imageUrls' : imageUrls,
       'stock' : stock,
-      'expiryDate': Timestamp.fromDate(expiryDate), // Convert DateTime to Timestamp      
+      'expiryDate': Timestamp.fromDate(expiryDate), // Convert DateTime to Timestamp  
+      'status': status,    
       'userRef': userRef,
     };
   }
@@ -44,6 +47,7 @@ class LocalProduce {
       imageUrls: List<String>.from(json['imageUrls'] as List), 
       stock: json['stock'] as int, 
       expiryDate: (json['expiryDate'] as Timestamp).toDate(),
+      status: json['status'] as String? ?? 'available',
       userRef: json['userRef'] as DocumentReference?,
       );
   } 

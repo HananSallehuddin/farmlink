@@ -1,4 +1,5 @@
 import 'package:farmlink/views/productFormUI.dart';
+import 'package:farmlink/views/recycleUI.dart';
 import 'package:get/get.dart';
 import 'package:farmlink/views/LandingPage.dart';
 import 'package:farmlink/views/RegistrationUI.dart';
@@ -14,7 +15,7 @@ class Routes{
   static const String homepageSeller = '/homepageSeller';
   static const String homepageCustomer = '/homepageCustomer';
   static const String productForm = '/productForm';
-
+  static const String recyclePage = '/recyclePage';
 
   //Map routes to pages
   static final pages = [
@@ -42,6 +43,10 @@ class Routes{
     GetPage(
       name: productForm,
       page: () => productFormUI(),
+    ),
+    GetPage(
+      name: recyclePage,
+      page: () => recycleUI(),
     ),
   ];
 }

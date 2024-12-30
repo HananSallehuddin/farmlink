@@ -189,7 +189,7 @@ class HomepageCustomer extends StatelessWidget {
               icon: Icon(Icons.person),
               color: Styles.subtitleColor,
               onPressed: () {
-                Get.toNamed('/profile');
+                Get.toNamed('/login');
               },
             ),
           ],

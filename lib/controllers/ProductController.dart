@@ -12,6 +12,7 @@ class ProductController extends GetxController {
   //variable to hold value from local produce class
   var produceList = <LocalProduce>[].obs;
   var filteredProduceList = <LocalProduce>[].obs;
+  var recycledProduceList = <LocalProduce>[].obs;
   var productName = ''.obs;
   var description = ''.obs;
   var price = 0.0.obs;
@@ -19,7 +20,9 @@ class ProductController extends GetxController {
   var expiryDate = Rx<DateTime?>(null);
   late String currentUserID;  
   var imageUrls = <String>[].obs; // List to hold multiple image URLs
+  var status = 'available'.obs;
   String userRole = '';
+  
 
   // Called when controller is initialized
   @override
@@ -30,6 +33,7 @@ class ProductController extends GetxController {
       Get.snackbar('Error', 'User not authenticated');
     }
     fetchProduce();
+    fetchRecycledProduce();
   }
 
   Future<void> addProductToListing() async {
@@ -54,6 +58,7 @@ class ProductController extends GetxController {
       imageUrls: uploadedImageUrls,
       stock: stock.value,
       expiryDate: expiryDate.value!,
+      status: status.value,
       userRef: FirebaseFirestore.instance.collection('users').doc(currentUserID),
     );
 
@@ -131,35 +136,6 @@ Future<List<String>> uploadAllImages() async {
   }
 }
 
-  //ni fetch semua tanpa tgk current id
-//   Future<void> fetchProduce() async {
-//   try {
-//     // Fetch all documents from the 'localProduce' collection in Firestore
-//     final querySnapshot = await FirebaseFirestore.instance.collection('localProduce').get();
-
-//     // Convert Firestore documents into LocalProduce objects
-//     final List<LocalProduce> products = querySnapshot.docs.map((doc) {
-//       return LocalProduce.fromJson({
-//         ...doc.data(), // Spread the map data
-//         'pid': doc.id, // Add the document ID as 'pid'
-//       });
-//     }).toList();
-
-//     // Update the observable produceList with the fetched products
-//     produceList.assignAll(products);
-
-//     // Sync the filteredProduceList with the produceList
-//     filteredProduceList.assignAll(produceList);
-
-//     // Notify success
-//     Get.snackbar('Success', 'Products loaded successfully');
-//   } catch (e) {
-//     // Notify error
-//     Get.snackbar('Error', 'Failed to fetch products: $e');
-//     print('Error in fetchProduce: $e');
-//   }
-// }
-
   Future<void> fetchProduce() async {
   final loginController = Get.find<LoginController>();
   String? role = await loginController.getUserRole();
@@ -182,10 +158,22 @@ Future<List<String>> uploadAllImages() async {
         });
       }).toList();
 
+      //iterate through produces and check if expiry date has passed
+      for (var produce in produces) {
+        if (produce.expiryDate.isBefore(DateTime.now()) && produce.status != 'recycled') {
+          //update status
+          produce.status = 'recycled';
+          //update to firestore
+          await FirebaseFirestore.instance.collection('localProduce').doc(produce.pid).update({
+            'status': 'recycled',
+          });
+        }
+      }
+
       produceList.assignAll(produces);
       filteredProduceList.assignAll(produceList);
 
-      Get.snackbar('Success', 'Products for Seller loaded successfully');
+      //Get.snackbar('Success', 'Products for Seller loaded successfully');
     } catch (e) {
       Get.snackbar('Error', 'Failed to fetch Seller products: $e');
       print('Error in fetchProduce for Seller: $e');
@@ -194,16 +182,33 @@ Future<List<String>> uploadAllImages() async {
     
     try {
       // Fetch all products for Customers
-      final querySnapshot = await FirebaseFirestore.instance.collection('localProduce').get();
+      final querySnapshot = await FirebaseFirestore.instance
+            .collection('localProduce')
+            .where('status', isEqualTo: 'available')
+            .get();
 
-      final List<LocalProduce> products = querySnapshot.docs.map((doc) {
+      final List<LocalProduce> produces = querySnapshot.docs.map((doc) {
         return LocalProduce.fromJson({
           ...doc.data(),
           'pid': doc.id,
         });
       }).toList();
 
-      produceList.assignAll(products);
+       //iterate through produces and check if expiry date has passed
+      for (var produce in produces) {
+        if (produce.expiryDate.isBefore(DateTime.now()) && produce.status != 'recycled') {
+          //update status
+          produce.status = 'recycled';
+          //update to firestore
+          await FirebaseFirestore.instance.collection('localProduce').doc(produce.pid).update({
+            'status': 'recycled',
+          });
+        }
+      }
+
+      produces.removeWhere((produce) => produce.status == 'recycled');
+
+      produceList.assignAll(produces);
       filteredProduceList.assignAll(produceList);
 
       Get.snackbar('Success', 'Products for Customer loaded successfully');
@@ -215,6 +220,28 @@ Future<List<String>> uploadAllImages() async {
     print('Error: Role is not recognized or null');
   }
 }
+
+  Future<void> fetchRecycledProduce() async {
+    try{
+      //fetch produce with status recycled
+      final querySnapshot = await FirebaseFirestore.instance
+            .collection('localProduce')
+            .where('status', isEqualTo: 'recycled')
+            .get();
+      
+      final List<LocalProduce> recycledProduces = querySnapshot.docs.map((doc) {
+        return LocalProduce.fromJson({
+          ...doc.data(),
+          'pid':doc.id,
+        });
+      }).toList();
+
+      recycledProduceList.assignAll(recycledProduces);
+    } catch (e) {
+      print('Error in fetcRecycledProduce: $e');
+    }
+    
+  }
 
   Future<void> deleteProductFromListing(String pid) async {
   try {

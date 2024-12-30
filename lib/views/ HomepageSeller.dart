@@ -121,9 +121,17 @@ class HomepageSeller extends StatelessWidget {
                                 SizedBox(height: 5),
                               //Display price
                                 Text(
-                                  '\$${product.price.toStringAsFixed(2)}',
+                                  '\RM${product.price.toStringAsFixed(2)}/KG',
                                   style: TextStyle(
                                     color: Colors.green,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                SizedBox(height: 5),
+                                Text(
+                                  product.status,
+                                  style: TextStyle(
+                                    color: Colors.red,
                                     fontSize: 14,
                                   ),
                                 ),
