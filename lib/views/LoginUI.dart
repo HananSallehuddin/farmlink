@@ -8,143 +8,206 @@ class LoginUI extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    //initialize LoginController using GetX
+    // Initialize LoginController using GetX
     final loginController = Get.find<LoginController>();
     final _formKey = GlobalKey<FormState>(); // Form key for validation
     String? _email, _password; // Store email and password
 
+    // Reactive boolean for toggling password visibility
+    final RxBool showPassword = false.obs;
+
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Column(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Logo at the top
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 40), // Adjust bottom padding for spacing
+              Padding(
+                padding: const EdgeInsets.only(top: 60.0),
+                child: Center(
                   child: Image.asset(
                     'assets/farmlink logo wo quotes.png', // Replace with your logo path
-                    width: 200,
-                    height: 200,
+                    width: 150,
+                    height: 150,
                   ),
                 ),
               ),
-             const Padding(
-                    padding: const EdgeInsets.only(top: 20), // Add space between logo and text
+
+              // Greeting text
+              const SizedBox(height: 24),
+              const Text(
+                'Log In',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Hello again, you\'ve been missed!',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
+                ),
+              ),
+
+              // Error message
+              Obx(() {
+                if (loginController.errorMessage.value.isNotEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 16.0),
                     child: Text(
-                      'Log IN',
+                      loginController.errorMessage.value,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  );
+                } else {
+                  return const SizedBox.shrink(); // Empty if no error message
+                }
+              }),
+
+              // Email input field
+              const SizedBox(height: 32),
+              Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    TextFormField(
+                      decoration: InputDecoration(
+                        labelText: 'Username',
+                        hintText: 'Enter Email',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your email';
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        _email = value; // Save email input value
+                      },
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Password input field with "show password" functionality
+                    Obx(
+                      () => TextFormField(
+                        decoration: InputDecoration(
+                          labelText: 'Password',
+                          hintText: 'Password',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              showPassword.value
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                            ),
+                            onPressed: () {
+                              showPassword.value = !showPassword.value;
+                            },
+                          ),
+                        ),
+                        obscureText: !showPassword.value,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your password';
+                          }
+                          return null;
+                        },
+                        onSaved: (value) {
+                          _password = value; // Save password input value
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Forgot Password link
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () {
+                    // Navigate to forgot password screen
+                  },
+                  child: const Text(
+                    'Forgot Password?',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
+              ),
+
+              // Login button
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,  // Set the width to infinity
+                child: ElevatedButton(
+                  onPressed: () async {
+                    if (_formKey.currentState?.validate() ?? false) {
+                      _formKey.currentState?.save(); // Save form data
+
+                      // Call login controller login method
+                      await loginController.loginUser(
+                        email: _email!,
+                        password: _password!,
+                      );
+
+                      // After login, check if login was successful
+                      if (loginController.isLoggedIn.value) {
+                        String? role = await loginController.getUserRole();
+                        if (role == 'Seller') {
+                          Get.offAllNamed('/homepageSeller');
+                        } else if (role == 'Customer') {
+                          Get.offAllNamed('/homepageCustomer');
+                        }
+                      }
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    backgroundColor: Styles.secondaryColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'LOG IN',
+                    style: TextStyle(fontSize: 16, color: Colors.white),
+                  ),
+                ),
+              ),
+
+              // Register link
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('New to FarmLink? '),
+                  GestureDetector(
+                    onTap: () {
+                      Get.toNamed('/register'); // Navigate to registration screen
+                    },
+                    child: const Text(
+                      'Sign Up',
                       style: TextStyle(
-                        fontSize: 24,
+                        color: Styles.secondaryColor,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-
-              // Display error message if available
-              Obx(() {
-                if (loginController.errorMessage.value.isNotEmpty) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16.0),
-                    child: Text(
-                      loginController.errorMessage.value,
-                      style: TextStyle(color: Colors.red),
-                    ),
-                  );
-                } else {
-                  return SizedBox.shrink(); //empty if no error message
-                }
-              }),
-
-              // Email input
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Email'),
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    print('Email validation failed: Empty');
-                    return 'Please enter your email';
-                  }
-                  return null;
-                },
-                onSaved: (value) {
-                  _email = value; // Save email input value
-                },
-              ),
-              // Password input
-              TextFormField(
-                decoration: InputDecoration(labelText: 'Password'),
-                obscureText: true,
-                validator: (value) {
-                  print('Validating password: $value');
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your password';
-                  }
-                  return null;
-                },
-                onSaved: (value) {
-                  _password = value; // Save password input value
-                },
-              ),
-              SizedBox(height: 20),
-
-              // Login button
-              ElevatedButton(
-                onPressed: () async {
-                  if (_formKey.currentState?.validate() ?? false) {
-                    _formKey.currentState?.save(); // Save form data
-                    print('Attempting login with email: $_email and password: $_password');
-
-                    // Call login controller login method
-                    await loginController.loginUser(
-                      email: _email!,
-                      password: _password!,
-                    );
-
-                    // After login, check if login was successful
-                    if (loginController.isLoggedIn.value) {
-                      print('Login successful. Fetching role...');
-                      // Check role and navigate accordingly
-                      String? role = await loginController.getUserRole();
-                      print('Role retrieved: $role');
-
-                      if (role == 'Seller') {
-                        Get.offAllNamed('/homepageSeller');
-                        print('Navigating to /homepageSeller');
-                      } else if (role == 'Customer'){
-                        Get.offAllNamed('/homepageCustomer');
-                        print('Navigating to /homepageCustomer');
-                      } else {
-                        print('Error: Role is not recognized or null');
-                      }
-                    } else {
-                      print('Login failed or email not verified');
-                    }
-                  } else {
-                    print('Form validation failed');
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white, backgroundColor: Styles.secondaryColor,
-                ),
-                child: Text('Login'),
-              ),
-
-              SizedBox(height: 20),
-
-              // Navigate to registration page
-              TextButton(
-                onPressed: () {
-                  Get.toNamed('/register'); // Navigate to registration screen
-                },
-                child: Text('Don\'t have an account? Register'),
+                ],
               ),
             ],
           ),
-       )
         ),
       ),
     );

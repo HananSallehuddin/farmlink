@@ -107,6 +107,7 @@ class recycleUI extends StatelessWidget {
           }),
         ],
       ),
+      bottomNavigationBar: bottomNavigationBarSeller(currentRoute: '/recyclePage')
     );
   }
 }

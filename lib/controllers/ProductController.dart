@@ -67,6 +67,7 @@ class ProductController extends GetxController {
 
     produceList.add(newProduce); // Add to local list
     filterProduce('');
+    await fetchProduce();
     Get.snackbar('Success', 'Product added successfully');
     //tgk balik ni
     imageUrls.clear();
@@ -76,65 +77,6 @@ class ProductController extends GetxController {
   }
 }
 
-// Pick multiple images
-  Future<void> pickImage(ImageSource source) async {
-    try {
-      final picker = ImagePicker();
-      final pickedFiles = await picker.pickMultiImage(); // Use pickMultiImage for multiple selections
-
-      if (pickedFiles != null && pickedFiles.length <= 5) {
-        for (var pickedFile in pickedFiles) {
-          if (File(pickedFile.path).existsSync()){
-            imageUrls.add(pickedFile.path);
-          } else {
-            Get.snackbar('Error', 'Selected file does not exist');
-          }// Add each picked image to the list
-        }
-      } else {
-        Get.snackbar('Error', 'Please select up to 5 images');
-      }
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to pick images: $e');
-    }
-  }
-
-  // Upload image to Firebase Storage and get the URL
-  Future<String> uploadImageToStorage(String filePath) async {
-  try {
-    if (!File(filePath).existsSync()) {
-      throw Exception('File does not exist at path: $filePath');
-    }
-
-    final fileName = DateTime.now().toIso8601String();
-    final ref = FirebaseStorage.instance.ref().child('localProduceImages/$fileName');
-    //upload file and get snapshot
-    final TaskSnapshot snapshot = await ref.putFile(File(filePath));
-
-    // Ensure the upload task is complete
-    if (snapshot.state == TaskState.success) {
-      return await ref.getDownloadURL();
-    } else {
-      throw Exception('Upload failed with state: ${snapshot.state}');
-    }
-  } catch (e) {
-    Get.snackbar('Error', 'Failed to upload image: $e');
-    rethrow;
-  }
-}
-
-Future<List<String>> uploadAllImages() async {
-  try {
-    List<String> uploadedUrls = [];
-    for (var filePath in imageUrls) {
-      String downloadUrl = await uploadImageToStorage(filePath);
-      uploadedUrls.add(downloadUrl);
-    }
-    return uploadedUrls;
-  } catch (e) {
-    Get.snackbar('Error', 'Failed to upload all images: $e');
-    return [];
-  }
-}
 
   Future<void> fetchProduce() async {
   final loginController = Get.find<LoginController>();
@@ -211,7 +153,7 @@ Future<List<String>> uploadAllImages() async {
       produceList.assignAll(produces);
       filteredProduceList.assignAll(produceList);
 
-      Get.snackbar('Success', 'Products for Customer loaded successfully');
+      //Get.snackbar('Success', 'Products for Customer loaded successfully');
     } catch (e) {
       Get.snackbar('Error', 'Failed to fetch Customer products: $e');
       print('Error in fetchProduce for Customer: $e');
@@ -276,4 +218,119 @@ void filterProduce(String query) {
           produce.productName.toLowerCase().contains(query.toLowerCase())).toList();
   }
 }
+
+// Pick multiple images
+  Future<void> pickImage(ImageSource source) async {
+    try {
+      final picker = ImagePicker();
+      final pickedFiles = await picker.pickMultiImage(); // Use pickMultiImage for multiple selections
+
+      if (pickedFiles != null && pickedFiles.length <= 5) {
+        for (var pickedFile in pickedFiles) {
+          if (File(pickedFile.path).existsSync()){
+            imageUrls.add(pickedFile.path);
+          } else {
+            Get.snackbar('Error', 'Selected file does not exist');
+          }// Add each picked image to the list
+        }
+      } else {
+        Get.snackbar('Error', 'Please select up to 5 images');
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to pick images: $e');
+    }
+  }
+
+  // Upload image to Firebase Storage and get the URL
+  Future<String> uploadImageToStorage(String filePath) async {
+  try {
+    if (!File(filePath).existsSync()) {
+      throw Exception('File does not exist at path: $filePath');
+    }
+
+    final fileName = DateTime.now().toIso8601String();
+    final ref = FirebaseStorage.instance.ref().child('localProduceImages/$fileName');
+    //upload file and get snapshot
+    final TaskSnapshot snapshot = await ref.putFile(File(filePath));
+
+    // Ensure the upload task is complete
+    if (snapshot.state == TaskState.success) {
+      return await ref.getDownloadURL();
+    } else {
+      throw Exception('Upload failed with state: ${snapshot.state}');
+    }
+  } catch (e) {
+    Get.snackbar('Error', 'Failed to upload image: $e');
+    rethrow;
+  }
+}
+
+Future<List<String>> uploadAllImages() async {
+  try {
+    List<String> uploadedUrls = [];
+    for (var filePath in imageUrls) {
+      String downloadUrl = await uploadImageToStorage(filePath);
+      uploadedUrls.add(downloadUrl);
+    }
+    return uploadedUrls;
+  } catch (e) {
+    Get.snackbar('Error', 'Failed to upload all images: $e');
+    return [];
+  }
+}
+
+//updateproduce
+Future<void> updateProduce(String pid) async {
+  try {
+    // Get the product from the produceList based on the product ID (pid)
+    LocalProduce produceToUpdate = produceList.firstWhere((produce) => produce.pid == pid);
+
+    // Update product details with new values from the controller's reactive variables
+    // produceToUpdate.productName = productName.value;
+    // produceToUpdate.description = description.value;
+    // produceToUpdate.price = price.value;
+    // produceToUpdate.stock = stock.value;
+    // produceToUpdate.expiryDate = expiryDate.value!;
+    // produceToUpdate.status = status.value;
+
+    // Update the product in Firestore
+    await FirebaseFirestore.instance.collection('localProduce').doc(pid).update({
+      'productName': produceToUpdate.productName,
+      'description': produceToUpdate.description,
+      'price': produceToUpdate.price,
+      'stock': produceToUpdate.stock,
+      'expiryDate': produceToUpdate.expiryDate,
+      'status': produceToUpdate.status,
+    });
+
+    // Reflect changes in the local list
+    produceList.refresh();
+    filteredProduceList.refresh();
+    await fetchProduce();
+
+    Get.snackbar('Success', 'Product updated successfully');
+  } catch (e) {
+    Get.snackbar('Error', 'Failed to update product: $e');
+  }
+}
+
+Future<LocalProduce> viewProduceDetails(String pid) async {
+  try{
+    final doc = await FirebaseFirestore.instance
+          .collection('localProduce')
+          .doc(pid)
+          .get();
+    
+    if (doc.exists) {
+      return LocalProduce.fromJson({
+        ...doc.data()!,
+        'pid': doc.id,
+      });
+    } else {
+      throw 'Produce not found';
+    }
+    } catch (e) {
+      throw 'Failed to load produce details: $e';
+    }
+  }
 }

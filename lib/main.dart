@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       //sini nk tukar start mana
-      initialRoute: Routes.landing,
+      initialRoute: Routes.homepageSeller,
       getPages: Routes.pages,
     );
   }

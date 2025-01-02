@@ -1,7 +1,8 @@
 import 'package:farmlink/bottomNaviBarSeller.dart';
 import 'package:farmlink/routes.dart';
 import 'package:farmlink/styles.dart';
-import 'package:farmlink/views/productFormUI.dart';
+import 'package:farmlink/views/Seller/productFormUI.dart';
+import 'package:farmlink/views/Seller/updateProduceUI.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:farmlink/controllers/ProductController.dart'; // Import the controller
@@ -72,79 +73,98 @@ class HomepageSeller extends StatelessWidget {
                 ),
                 itemCount: productController.filteredProduceList.length,
                 itemBuilder: (context, index) {
-                  final product = productController.filteredProduceList[index];
+                  final produce = productController.filteredProduceList[index];
+                  print("PID: ${produce.pid}");
                   return GestureDetector(
                     onLongPress: (){
-                      _showDeleteConfirmation(context, productController, product);
+                      _showDeleteConfirmation(context, productController, produce);
                     },
                     child: Card(
                       shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                       elevation: 5,
-
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Stack(
                         children: [
-                        //display product image
-                          Expanded(
-                            child: product.imageUrls.isNotEmpty
-                                ? Image.network(
-                                  product.imageUrls[0],
-                                  fit: BoxFit.cover,
-                                  width: double.infinity,
-                                )
-                                : Container(
-                                    color: Colors.grey,  // Grey background when no image is available
-                                    width: double.infinity,
-                                    child: Center(
-                                      child: Icon(
-                                        Icons.image,  // Optional: icon to indicate no image
-                                        color: Colors.white,
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              //display product image
+                              Expanded(
+                                child: produce.imageUrls.isNotEmpty
+                                    ? Image.network(
+                                        produce.imageUrls[0],
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                      )
+                                    : Container(
+                                        color: Colors.grey,  // Grey background when no image is available
+                                        width: double.infinity,
+                                        child: Center(
+                                          child: Icon(
+                                            Icons.image,  // Optional: icon to indicate no image
+                                            color: Colors.white,
+                                          ),
+                                        ), //if no image, show placeholder
+                                      ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    //display product name
+                                    Text(
+                                      produce.productName,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
                                       ),
                                     ),
-                                  ), //if no image, show palceholder
+                                    SizedBox(height: 5),
+                                    //Display price
+                                    Text(
+                                      '\RM${produce.price.toStringAsFixed(2)}/KG',
+                                      style: TextStyle(
+                                        color: Colors.green,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    SizedBox(height: 5),
+                                    Text(
+                                      produce.status,
+                                      style: TextStyle(
+                                        color: Colors.red,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    SizedBox(height: 5),
+                                  ],
                                 ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                //display product name
-                                Text(
-                                  product.productName,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                SizedBox(height: 5),
-                              //Display price
-                                Text(
-                                  '\RM${product.price.toStringAsFixed(2)}/KG',
-                                  style: TextStyle(
-                                    color: Colors.green,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                SizedBox(height: 5),
-                                Text(
-                                  product.status,
-                                  style: TextStyle(
-                                    color: Colors.red,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                SizedBox(height: 5),
+                              ),
                             ],
                           ),
+                          Positioned(
+                            bottom: 8,
+                            right: 8,
+                            child: GestureDetector(
+                              onTap: () {
+                                  // Navigate to the UpdateProduceUI with the selected product ID
+                                  Get.toNamed('/updateProduce', parameters: {'pid': produce.pid.toString()});
+                                },
+                              child: Icon(
+                                Icons.edit,
+                                color: Colors.black,
+                                size: 25,
+                              ),
+                            ),
                           ),
-                      ],
+                        ],
+                      ),
                     ),
-              ),
-            );
+                  );
                 },
-                );
+              );
             }),
           ),
         ],
@@ -154,7 +174,7 @@ class HomepageSeller extends StatelessWidget {
     );
   }
 
- // Show a confirmation dialog when the user long presses on a product
+  // Show a confirmation dialog when the user long presses on a product
   void _showDeleteConfirmation(BuildContext context, ProductController productController, var product) {
     showModalBottomSheet(
       context: context,
@@ -201,4 +221,3 @@ class HomepageSeller extends StatelessWidget {
     }
   }
 }
-

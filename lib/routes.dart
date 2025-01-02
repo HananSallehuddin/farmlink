@@ -1,11 +1,13 @@
-import 'package:farmlink/views/productFormUI.dart';
-import 'package:farmlink/views/recycleUI.dart';
+import 'package:farmlink/views/Customer/viewProduceUI.dart';
+import 'package:farmlink/views/Seller/productFormUI.dart';
+import 'package:farmlink/views/Seller/recycleUI.dart';
+import 'package:farmlink/views/Seller/updateProduceUI.dart';
 import 'package:get/get.dart';
 import 'package:farmlink/views/LandingPage.dart';
 import 'package:farmlink/views/RegistrationUI.dart';
 import 'package:farmlink/views/LoginUI.dart';   
-import 'package:farmlink/views/ HomepageSeller.dart';
-import 'package:farmlink/views/HomepageCustomer.dart';
+import 'package:farmlink/views/Seller/%20HomepageSeller.dart';
+import 'package:farmlink/views/Customer/HomepageCustomer.dart';
 
 class Routes{
   //Define route name as constants
@@ -16,6 +18,8 @@ class Routes{
   static const String homepageCustomer = '/homepageCustomer';
   static const String productForm = '/productForm';
   static const String recyclePage = '/recyclePage';
+  static const String updateProduce = '/updateProduce';
+  static const String viewProduce = '/viewProduce';
 
   //Map routes to pages
   static final pages = [
@@ -47,6 +51,18 @@ class Routes{
     GetPage(
       name: recyclePage,
       page: () => recycleUI(),
+    ),
+    GetPage(
+      name: updateProduce,
+      page: () => updateProduceUI(),
+    ),
+    GetPage(
+      name: viewProduce,
+      page: () => viewProduceUI(),
+      // page: () {
+      //   String pid = Get.parameters['pid'] ?? '';
+      //   return viewProduceUI(pid: pid);
+      // }
     ),
   ];
 }

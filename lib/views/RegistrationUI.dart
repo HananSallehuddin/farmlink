@@ -19,203 +19,225 @@ class _RegistrationUIState extends State<RegistrationUI> {
   bool isPasswordVisible = false;
   String email = '';
   String role = '';
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.only(top:30),
-                child: Image.asset(
+            // Logo
+            Padding(
+              padding: const EdgeInsets.only(top: 50.0),
+              child: Image.asset(
                 'assets/farmlink logo wo quotes.png',
-                width: 200,
-                height: 200,
+                width: 150,
+                height: 150,
               ),
             ),
-            ),
+            const SizedBox(height: 20),
 
+            // Header
             const Text(
-                'Register your account',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,  // Bold
-                  fontSize: 20,                
-                ),
+              'Register your account',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 24,
               ),
-            SizedBox(height: 20),
+            ),
+            const Text(
+              'Hey there, Welcome to FarmLink!',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey,
+              ),
+            ),
+            const SizedBox(height: 30),
 
-            //registration form
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(30),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.3),
-                    spreadRadius: 2,
-                    blurRadius: 5,
-                    offset: Offset(0, 2),
+            // Registration Form
+            Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  // Username
+                  _buildTextField(
+                    label: 'Username',
+                    hint: 'Enter username',
+                    onSaved: (value) => username = value!,
                   ),
-                ],
-              ),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    //username field
-                    TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'Username',
-                        labelStyle: Styles.bodyText1,
-                        ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your username';
-                        }
-                        return null;
+                  const SizedBox(height: 16),
+
+                  // Email
+                  _buildTextField(
+                    label: 'Email',
+                    hint: 'Enter email',
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your email';
+                      }
+                      if (!RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+                          .hasMatch(value)) {
+                        return 'Please enter a valid email';
+                      }
+                      return null;
+                    },
+                    onSaved: (value) => email = value!,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Password
+                  _buildTextField(
+                    label: 'Password',
+                    hint: 'Enter password',
+                    obscureText: !isPasswordVisible,
+                    onSaved: (value) => password = value!,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        isPasswordVisible
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                        color: Colors.grey,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          isPasswordVisible = !isPasswordVisible;
+                        });
                       },
-                      onSaved: (value) => username = value!,
                     ),
-                    SizedBox(height: 16),
-                    //email field
-                    TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        labelStyle: Styles.bodyText1,
-                        ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your email';
-                        }
-                        if (!RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").hasMatch(value)) {
-                          return 'Please enter a valid email';
-                        }
-                        return null;
-                      },
-                      onSaved: (value) => email = value!,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Role Selection
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Select Role:',
+                      style: TextStyle(fontSize: 16),
                     ),
-                    SizedBox(height: 16),
-                    //password field
-                    TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'Password',
-                        labelStyle: Styles.bodyText1,
-                        ),
-                      obscureText: !isPasswordVisible,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your password';
-                        }
-                        if (value.length < 6) {
-                          return 'Password must be at least 6 characters';
-                        }
-                        return null;
-                      },
-                      onSaved: (value) => password = value!,
-                    ),
-                    SizedBox(height: 8),
-               
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: Icon(
-                            isPasswordVisible
-                                ? Icons.visibility
-                                : Icons.visibility_off,
-                            color: Styles.textColor,
-                          ),
-                          onPressed: () {
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: RadioListTile<String>(
+                          title: const Text('Seller'),
+                          value: 'Seller',
+                          groupValue: role,
+                          onChanged: (value) {
                             setState(() {
-                              isPasswordVisible = !isPasswordVisible;
+                              role = value!;
                             });
                           },
-                          ),
-                          Text('Show Password',
-                          style: Styles.bodyText1,
-                          ),
-                      ],
-                    ),
-                    SizedBox(height: 16),
-                //Role selection button
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Select Role:'),
-                        SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Radio<String>(
-                              value: 'Seller',
-                              groupValue: role, 
-                              onChanged: (value) {
-                                setState(() {
-                                  role = value!;
-                                });
-                              },
-                            ),
-                            Text('Seller'),
-                          ],
                         ),
-                        Row(
-                          children: [
-                            Radio<String>(
-                              value: 'Customer',
-                              groupValue: role,
-                              onChanged: (value) {
-                                setState(() {
-                                  role = value!;
-                                });
-                              },
-                            ),
-                            Text('Customer'),
-                          ],
+                      ),
+                      Expanded(
+                        child: RadioListTile<String>(
+                          title: const Text('Customer'),
+                          value: 'Customer',
+                          groupValue: role,
+                          onChanged: (value) {
+                            setState(() {
+                              role = value!;
+                            });
+                          },
                         ),
-                      ],
-                    ),
-                    SizedBox(height: 16),
-              
-                //Register Button
-                    ElevatedButton(
-                      onPressed: _registerUser, 
-                      child: Text('Sign up'),
-                    ),
-                    SizedBox(height: 16),
-              
-                    //Login Link
-                    Center(
-                      child: TextButton(
-                        onPressed: () {
-                          Get.toNamed('/login');
-                        },
-                        child: Text(
-                          'Already have an account? Log in',
-                          style: TextStyle(fontSize: 16, color: Styles.buttonColor),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 30),
+
+                  // Sign Up Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _registerUser,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Styles.secondaryColor, // Light green
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: const Text(
+                        'SIGN UP',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: Styles.subtitleColor
                         ),
                       ),
                     ),
-                  ],
-              ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  //try
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('Already have an account? '),
+                      GestureDetector(
+                        onTap: () {
+                          Get.toNamed('/login'); // Navigate to registration screen
+                        },
+                        child: const Text(
+                          'Log In',
+                          style: TextStyle(
+                            color: Styles.secondaryColor,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),
       ),
     );
   }
+
+  // Reusable TextField Widget
+  Widget _buildTextField({
+    required String label,
+    required String hint,
+    bool obscureText = false,
+    String? Function(String?)? validator,
+    Function(String?)? onSaved,
+    Widget? suffixIcon,
+  }) {
+    return TextFormField(
+      obscureText: obscureText,
+      validator: validator,
+      onSaved: onSaved,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+        ),
+        filled: true,
+        fillColor: Colors.grey[200],
+        suffixIcon: suffixIcon,
+      ),
+    );
+  }
+
   void _registerUser() async {
-    if(_formKey.currentState!.validate()) {
+    if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
       if (role.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Please select a role'), backgroundColor: Styles.buttonColor),
-          );
-          return;
+          const SnackBar(
+            content: Text('Please select a role'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
       }
 
       String? errorMessage = await _controller.registerUser(
@@ -227,14 +249,20 @@ class _RegistrationUIState extends State<RegistrationUI> {
 
       if (errorMessage == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Registration successful'), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text('Registration successful'),
+            backgroundColor: Colors.green,
+          ),
         );
         Get.toNamed('/login');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
   }
-} 
+}

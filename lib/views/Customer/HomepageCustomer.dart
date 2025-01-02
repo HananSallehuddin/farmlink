@@ -1,3 +1,4 @@
+import 'package:farmlink/bottomNaviBarCustomer.dart';
 import 'package:farmlink/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -82,7 +83,7 @@ class HomepageCustomer extends StatelessWidget {
           Expanded(
             child: Obx(() {
               if (productController.filteredProduceList.isEmpty) { 
-                return Center(child: Text('No products uploaded yet.'));
+                return Center(child: Text('No produce'));
               }
               return GridView.builder(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -95,9 +96,15 @@ class HomepageCustomer extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final product = productController.filteredProduceList[index];
                   return GestureDetector(
-                    // onLongPress: (){
-                    //   _showDeleteConfirmation(context, productController, product);
-                    // },
+                    onTap: () {
+                      if (product.pid == null) {
+                        print("Product ID is null for ${product.productName}");
+                        Get.snackbar('Error', 'Product ID is missing');
+                      } else {
+                        print('Navigating to viewProduce with pid: ${product.pid}');
+                        Get.toNamed('/viewProduce', parameters: {'pid': product.pid.toString()});
+                      }
+                    },
                     child: Card(
                       shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -163,38 +170,7 @@ class HomepageCustomer extends StatelessWidget {
         ],
       ),
       //reusable bottom navi bar
-      bottomNavigationBar: BottomAppBar(
-        color: Styles.secondaryColor,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            // Chat Button
-            IconButton(
-              icon: Icon(Icons.chat),
-              color: Styles.subtitleColor,
-              onPressed: () {
-                Get.toNamed('/chat');
-              },
-            ),
-            // Home Button
-            IconButton(
-              icon: Icon(Icons.home),
-              color: Styles.subtitleColor,
-              onPressed: () {
-                Get.toNamed('/homepageSeller');
-              },
-            ),
-            // Profile Button
-            IconButton(
-              icon: Icon(Icons.person),
-              color: Styles.subtitleColor,
-              onPressed: () {
-                Get.toNamed('/login');
-              },
-            ),
-          ],
-        ),
-      ),
+      bottomNavigationBar: bottomNavigationBarCustomer(currentRoute: '/homepageCustomer')
     );
   }
 }
