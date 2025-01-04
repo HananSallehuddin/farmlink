@@ -174,7 +174,7 @@ class LoginUI extends StatelessWidget {
                   },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    backgroundColor: Styles.secondaryColor,
+                    backgroundColor: Styles.primaryColor,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -199,7 +199,7 @@ class LoginUI extends StatelessWidget {
                     child: const Text(
                       'Sign Up',
                       style: TextStyle(
-                        color: Styles.secondaryColor,
+                        color: Styles.primaryColor,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

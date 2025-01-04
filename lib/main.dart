@@ -1,3 +1,4 @@
+import 'package:farmlink/controllers/CartController.dart';
 import 'package:farmlink/controllers/LoginController.dart';
 import 'package:farmlink/controllers/ProductController.dart';
 import 'package:farmlink/routes.dart';
@@ -12,6 +13,8 @@ void main() async {
   print("Firebase initialized");
   Get.put(LoginController());
   Get.put(ProductController());
+  Get.put(CartController());
+
   runApp(const MyApp());
 }
 
@@ -23,12 +26,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       title: 'FarmLink',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Styles.primaryColor),
         useMaterial3: true,
       ),
       //sini nk tukar start mana
-      initialRoute: Routes.homepageSeller,
+      initialRoute: Routes.homepageCustomer,
       getPages: Routes.pages,
     );
   }

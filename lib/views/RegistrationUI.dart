@@ -153,7 +153,7 @@ class _RegistrationUIState extends State<RegistrationUI> {
                     child: ElevatedButton(
                       onPressed: _registerUser,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Styles.secondaryColor, // Light green
+                        backgroundColor: Styles.primaryColor, // Light green
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),
@@ -183,7 +183,7 @@ class _RegistrationUIState extends State<RegistrationUI> {
                         child: const Text(
                           'Log In',
                           style: TextStyle(
-                            color: Styles.secondaryColor,
+                            color: Styles.primaryColor,
                             fontWeight: FontWeight.bold,
                           ),
                         ),

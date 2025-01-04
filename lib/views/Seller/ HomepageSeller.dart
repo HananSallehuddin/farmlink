@@ -47,7 +47,7 @@ class HomepageSeller extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Styles.secondaryColor,
+                  color: Styles.primaryColor,
                   borderRadius: BorderRadius.circular(8.0),
                 ),
                 child: Icon(Icons.add, color: Styles.subtitleColor),
@@ -65,6 +65,7 @@ class HomepageSeller extends StatelessWidget {
                 return Center(child: Text('No products uploaded yet.'));
               }
               return GridView.builder(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2, //2 items per row
                   crossAxisSpacing: 10, //space between columns

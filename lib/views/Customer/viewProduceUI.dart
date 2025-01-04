@@ -1,6 +1,8 @@
 import 'package:farmlink/bottomNaviBarCustomer.dart';
+import 'package:farmlink/controllers/CartController.dart';
 import 'package:farmlink/controllers/ProductController.dart';
 import 'package:farmlink/models/LocalProduce.dart';
+import 'package:farmlink/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -10,7 +12,11 @@ class viewProduceUI extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final productController = Get.find<ProductController>();
+    final cartController = Get.find<CartController>();
     final String? pid = Get.parameters['pid'];
+    if (pid == null) {
+      return Center(child: Text('Invalid or missing pid'));
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -19,8 +25,9 @@ class viewProduceUI extends StatelessWidget {
           onPressed: () => Get.back(),
         ),
         actions: [
-          IconButton(
-            icon: const Stack(
+          Obx(() {
+            return IconButton(
+            icon: Stack(
               children: [
                 Icon(Icons.shopping_cart_outlined),
                 Positioned(
@@ -30,7 +37,8 @@ class viewProduceUI extends StatelessWidget {
                     radius: 8,
                     backgroundColor: Colors.amber,
                     child: Text(
-                      '20', // Replace with dynamic cart count
+                      '${cartController.cart.value.quantity.isEmpty ? 0 
+                       : cartController.cart.value.quantity.values.fold<int>(0, (prev, qty) => prev + qty)}',
                       style: TextStyle(fontSize: 12, color: Colors.black),
                     ),
                   ),
@@ -38,13 +46,14 @@ class viewProduceUI extends StatelessWidget {
               ],
             ),
             onPressed: () {
-              // Navigate to cart
+              Get.toNamed('viewCart');
             },
-          ),
+          );
+          }),
         ],
       ),
       body: FutureBuilder<LocalProduce>(
-        future: productController.viewProduceDetails(pid!),
+        future: productController.viewProduceDetails(pid),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
@@ -55,6 +64,7 @@ class viewProduceUI extends StatelessWidget {
           }
 
           final produce = snapshot.data!;
+          productController.stock.value = produce.stock;
           return SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,10 +104,10 @@ class viewProduceUI extends StatelessWidget {
                         children: [
                           Text(
                             'RM${produce.price.toStringAsFixed(2)}',
-                            style: TextStyle(
+                            style: const TextStyle(
                                 fontSize: 24, fontWeight: FontWeight.bold),
                           ),
-                          Row(
+                          const Row(
                             children: [
                               Icon(Icons.star, color: Colors.amber, size: 20),
                               SizedBox(width: 4),
@@ -123,38 +133,40 @@ class viewProduceUI extends StatelessWidget {
                         style: TextStyle(fontSize: 16),
                       ),
                       SizedBox(height: 16),
-                      // Seller Info
-                      Row(
-                        // children: [
-                        //   CircleAvatar(
-                        //     radius: 24,
-                        //     backgroundImage:
-                        //         NetworkImage(produce.sellerProfilePicUrl),
-                        //   ),
-                        //   SizedBox(width: 8),
-                        //   Text(
-                        //     produce.sellerName,
-                        //     style: TextStyle(fontSize: 18),
-                        //   ),
-                        //   Spacer(),
-                        //   Icon(Icons.chat_bubble_outline),
-                        // ],
-                      ),
+                      //stock status
+                      Obx(() {
+                        return Text(  
+                        productController.stock.value > 0
+                          ? 'In Stock: ${productController.stock.value}'
+                          : 'Out of stock',
+                        style: TextStyle( 
+                          color: produce.stock > 0 ? Colors.green : Colors.red,
+                          fontSize: 16,
+                        ),
+                      );
+                      }),
+                      
                       SizedBox(height: 16),
                       // Add to Cart Button
                       Center(
                         child: ElevatedButton.icon(
-                          onPressed: () {
-                            // Add to cart logic
-                          },
-                          icon: Icon(Icons.add_shopping_cart),
-                          label: Text('Add To Cart'),
+                          onPressed: produce.stock > 0 
+                              ? () {
+                                cartController.addProduceToCart(produce);
+                               }
+                            : null,
+                          // icon: Icon(Icons.add_shopping_cart),
+                          label: Text(
+                            produce.stock > 0 ? 'Add to cart' : 'Out of stock',
+                          ),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.grey[200],
+                            backgroundColor:produce.stock > 0
+                                ? Styles.primaryColor
+                                : Colors.grey,
                             padding: EdgeInsets.symmetric(
                                 horizontal: 32, vertical: 12),
                             textStyle: TextStyle(fontSize: 16),
-                          ),
+                          ), //disable button if out of stock                        
                         ),
                       ),
                     ],
@@ -165,7 +177,7 @@ class viewProduceUI extends StatelessWidget {
           );
         },
       ),
-      bottomNavigationBar: bottomNavigationBarCustomer(currentRoute: '/viewProduce',)
+      bottomNavigationBar: bottomNavigationBarCustomer(currentRoute: '/viewProduce',),
     );
   }
 }

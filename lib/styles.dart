@@ -5,14 +5,14 @@ class Styles {
   static const String fontFamily = 'Roboto';
 
   // Color Palette
-  static const Color primaryColor = Color(0xFF94B699); // Green background color
-  static const Color secondaryColor = Color(0xFFB5C18E); // Lighter green
+  // Green background color
+  static const Color primaryColor = Color(0xFFB9C89F); // Lighter green
+  static const Color secondaryColor = Color(0xFFB9C89F); // A lighter shade of the original color
   static const Color accentColor = Color(0xFFFFA726); // Example: Orange for accents
   static const Color backgroundColor = Colors.white; // Default background color
   static const Color textColor = Colors.black87; // Default text color
   static const Color subtitleColor = Colors.black54; // Subtle text color
   static const Color buttonColor = Color(0xFF94B699); // Button background
-  static const Color buttonTextColor = Colors.white; // Button text
 
   // Header Styles
   static const TextStyle header1 = TextStyle(
@@ -47,14 +47,6 @@ class Styles {
     fontSize: 14.0,
     fontFamily: fontFamily,
     color: subtitleColor,
-  );
-
-  // Button Text Style
-  static const TextStyle buttonText = TextStyle(
-    fontSize: 16.0,
-    fontWeight: FontWeight.bold,
-    fontFamily: fontFamily,
-    color: buttonTextColor,
   );
 
   // Caption Text Style

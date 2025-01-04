@@ -9,14 +9,14 @@ class bottomNavigationBarSeller extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
         return BottomAppBar(
-      color: Styles.secondaryColor,
+      color: Styles.primaryColor,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           // Home Button
           IconButton(
             icon: Icon(Icons.home),
-            color: currentRoute == '/homepageSeller' ? Styles.primaryColor : Styles.subtitleColor,
+            color: currentRoute == '/homepageSeller' ? Colors.white : Styles.subtitleColor,
             onPressed: () {
               if (currentRoute != '/homepageSeller') {
                 Get.toNamed('/homepageSeller');
@@ -26,7 +26,7 @@ class bottomNavigationBarSeller extends StatelessWidget {
           // Chat Button
           IconButton(
             icon: Icon(Icons.chat),
-            color: currentRoute == '/chat' ? Styles.primaryColor : Styles.subtitleColor,
+            color: currentRoute == '/chat' ? Colors.white : Styles.subtitleColor,
             onPressed: () {
               if (currentRoute != '/chat') {
                 Get.toNamed('/chat');
@@ -36,7 +36,7 @@ class bottomNavigationBarSeller extends StatelessWidget {
           // recycle produce button
           IconButton(
             icon: Icon(Icons.recycling),
-            color: currentRoute == '/recyclePage' ? Styles.primaryColor : Styles.subtitleColor,
+            color: currentRoute == '/recyclePage' ? Colors.white : Styles.subtitleColor,
             onPressed: () {
               if (currentRoute != '/recyclePage') {
                 Get.toNamed('/recyclePage');
@@ -46,7 +46,7 @@ class bottomNavigationBarSeller extends StatelessWidget {
           // Orders Button
           IconButton(
             icon: Icon(Icons.receipt_long),
-            color: currentRoute == '/orders' ? Styles.primaryColor : Styles.subtitleColor,
+            color: currentRoute == '/orders' ? Colors.white : Styles.subtitleColor,
             onPressed: () {
               if (currentRoute != '/orders') {
                 Get.toNamed('/orders');
@@ -56,7 +56,7 @@ class bottomNavigationBarSeller extends StatelessWidget {
           // Profile Button
           IconButton(
             icon: Icon(Icons.person),
-            color: currentRoute == '/login' ? Styles.primaryColor : Styles.subtitleColor,
+            color: currentRoute == '/login' ? Colors.white : Styles.subtitleColor,
             onPressed: () {
               if (currentRoute != '/login') {
                 Get.toNamed('/login');

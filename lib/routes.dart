@@ -1,3 +1,4 @@
+import 'package:farmlink/views/Customer/viewCartUI.dart';
 import 'package:farmlink/views/Customer/viewProduceUI.dart';
 import 'package:farmlink/views/Seller/productFormUI.dart';
 import 'package:farmlink/views/Seller/recycleUI.dart';
@@ -20,6 +21,8 @@ class Routes{
   static const String recyclePage = '/recyclePage';
   static const String updateProduce = '/updateProduce';
   static const String viewProduce = '/viewProduce';
+  static const String viewCart = '/viewCart';
+
 
   //Map routes to pages
   static final pages = [
@@ -59,10 +62,10 @@ class Routes{
     GetPage(
       name: viewProduce,
       page: () => viewProduceUI(),
-      // page: () {
-      //   String pid = Get.parameters['pid'] ?? '';
-      //   return viewProduceUI(pid: pid);
-      // }
+    ),
+    GetPage(
+      name: viewCart,
+      page: () => viewCartUI(),
     ),
   ];
 }

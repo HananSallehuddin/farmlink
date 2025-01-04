@@ -1,4 +1,5 @@
 import 'package:farmlink/bottomNaviBarCustomer.dart';
+import 'package:farmlink/controllers/CartController.dart';
 import 'package:farmlink/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -11,6 +12,7 @@ class HomepageCustomer extends StatelessWidget {
   Widget build(BuildContext context) {
     // Initialize the ProductController
     final productController = Get.find<ProductController>();
+    final cartController = Get.find<CartController>();
 
     return Scaffold(
       appBar: AppBar(
@@ -35,47 +37,35 @@ class HomepageCustomer extends StatelessWidget {
               ),
             ),
             SizedBox(width: 10),
-            // Add button
-            GestureDetector(
-              // onTap: () {
-              //   // Show dialog to upload product
-              //   showDialog(
-              //     context: context,
-              //     builder: (context) {
-              //       String newProduct = '';
-              //       return AlertDialog(
-              //         title: Text('Add Product'),
-              //         content: TextField(
-              //           onChanged: (value) => newProduct = value,
-              //           decoration: InputDecoration(hintText: 'Enter product name'),
-              //         ),
-              //         actions: [
-              //           TextButton(
-              //             onPressed: () {
-              //               if (newProduct.isNotEmpty) {
-              //                 productController.addProductToListing();
-              //                 Navigator.of(context).pop();
-              //               }
-              //             },
-              //             child: Text('Add'),
-              //           ),
-              //         ],
-              //       );
-              //     },
-              //   );
-              // },
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Styles.secondaryColor,
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: Icon(Icons.shopping_cart, color: Styles.subtitleColor),
-              ),
-            ),
           ],
         ),
+        actions: [
+          Obx(() {
+            return IconButton(
+              icon: Stack(
+                children: [
+                  Icon(Icons.shopping_cart_outlined),
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: CircleAvatar(
+                      radius: 8,
+                      backgroundColor: Colors.amber,
+                      child: Text(
+                        '${cartController.cart.value.quantity.isEmpty ? 0 
+                        : cartController.cart.value.quantity.values.fold<int>(0, (prev, qty) => prev + qty)}',
+                        style: TextStyle(fontSize: 12, color: Colors.black),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              onPressed: () {
+                Get.toNamed('viewCart');
+              },
+            );
+          }),
+        ],
       ),
       body: Column(
         children: [
@@ -86,6 +76,7 @@ class HomepageCustomer extends StatelessWidget {
                 return Center(child: Text('No produce'));
               }
               return GridView.builder(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2, //2 items per row
                   crossAxisSpacing: 10, //space between columns
@@ -107,7 +98,7 @@ class HomepageCustomer extends StatelessWidget {
                     },
                     child: Card(
                       shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                       elevation: 5,
 
@@ -149,7 +140,7 @@ class HomepageCustomer extends StatelessWidget {
                                 SizedBox(height: 5),
                               //Display price
                                 Text(
-                                  '\$${product.price.toStringAsFixed(2)}',
+                                  '\RM${product.price.toStringAsFixed(2)}',
                                   style: TextStyle(
                                     color: Colors.green,
                                     fontSize: 14,

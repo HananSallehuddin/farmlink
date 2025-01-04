@@ -146,10 +146,18 @@ class ProductController extends GetxController {
             'status': 'recycled',
           });
         }
+        //if stock is 0, set to out of stock and update firestore
+        if (produce.stock == 0 && produce.status != 'out of stock') {
+          produce.status = 'out of stock';
+
+          //update firestore
+          await FirebaseFirestore.instance.collection('localProduce').doc(produce.pid).update({
+            'status': 'out of stock',
+          });
+        }
       }
 
-      produces.removeWhere((produce) => produce.status == 'recycled');
-
+      produces.removeWhere((produce) => produce.status == 'recycled' || produce.status == 'out of stock');
       produceList.assignAll(produces);
       filteredProduceList.assignAll(produceList);
 
@@ -284,14 +292,6 @@ Future<void> updateProduce(String pid) async {
   try {
     // Get the product from the produceList based on the product ID (pid)
     LocalProduce produceToUpdate = produceList.firstWhere((produce) => produce.pid == pid);
-
-    // Update product details with new values from the controller's reactive variables
-    // produceToUpdate.productName = productName.value;
-    // produceToUpdate.description = description.value;
-    // produceToUpdate.price = price.value;
-    // produceToUpdate.stock = stock.value;
-    // produceToUpdate.expiryDate = expiryDate.value!;
-    // produceToUpdate.status = status.value;
 
     // Update the product in Firestore
     await FirebaseFirestore.instance.collection('localProduce').doc(pid).update({

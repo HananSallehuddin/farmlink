@@ -25,13 +25,13 @@ class LandingPage extends StatelessWidget {
                   Get.toNamed('/register'); 
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Styles.secondaryColor, // Button background color
+                  backgroundColor: Styles.primaryColor, // Button background color
                   foregroundColor: Styles.buttonColor, // Text color
                   padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15), // Button padding
                 ),
                 child: Text(
                   "Get Started", 
-                  style: Styles.buttonText,
+                  //style: Styles.buttonText,
                 ),
               )
             ],

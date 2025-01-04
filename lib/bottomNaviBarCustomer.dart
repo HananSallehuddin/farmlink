@@ -9,7 +9,7 @@ class bottomNavigationBarCustomer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
         return BottomAppBar(
-      color: Styles.secondaryColor,
+      color: Styles.primaryColor,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
@@ -24,7 +24,7 @@ class bottomNavigationBarCustomer extends StatelessWidget {
           // Home Button
           IconButton(
             icon: Icon(Icons.home),
-            color: currentRoute == '/homepageCustomer' ? Styles.primaryColor : Styles.subtitleColor,
+            color: currentRoute == '/homepageCustomer' ? Colors.white : Styles.subtitleColor,
             onPressed: () {
               if (currentRoute != '/homepageCustomer') {
                 Get.toNamed('/homepageCustomer');
@@ -35,7 +35,7 @@ class bottomNavigationBarCustomer extends StatelessWidget {
           // Profile Button
           IconButton(
             icon: Icon(Icons.person),
-            color: currentRoute == '/login' ? Styles.primaryColor : Styles.subtitleColor,
+            color: currentRoute == '/login' ? Colors.white : Styles.subtitleColor,
             onPressed: () {
               if (currentRoute != '/login') {
                 Get.toNamed('/login');
