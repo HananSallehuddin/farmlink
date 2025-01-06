@@ -43,33 +43,3 @@ class Cart {
   }
 }
 
-// class ShippingDetails {
-//   final String address;
-//   final String city;
-//   final String zipCode;
-
-//   // Constructor
-//   ShippingDetails({
-//     required this.address,
-//     required this.city,
-//     required this.zipCode,
-//   });
-
-//   // Convert ShippingDetails to JSON for Firestore
-//   Map<String, dynamic> toJson() {
-//     return {
-//       'address': address,
-//       'city': city,
-//       'zipCode': zipCode,
-//     };
-//   }
-
-//   // Create a ShippingDetails from Firestore document
-//   factory ShippingDetails.fromJson(Map<String, dynamic> json) {
-//     return ShippingDetails(
-//       address: json['address'] as String,
-//       city: json['city'] as String,
-//       zipCode: json['zipCode'] as String,
-//     );
-//   }
-// }

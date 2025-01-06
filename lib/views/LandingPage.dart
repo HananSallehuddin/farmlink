@@ -8,7 +8,7 @@ class LandingPage extends StatelessWidget {
     return Scaffold(
       body: Container(
         width: double.infinity,
-        color: Styles.primaryColor,  // Green background
+        color: Colors.white,  // Green background
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 20.0),
           child: Column(
@@ -26,7 +26,7 @@ class LandingPage extends StatelessWidget {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Styles.primaryColor, // Button background color
-                  foregroundColor: Styles.buttonColor, // Text color
+                  foregroundColor: Colors.white, // Text color
                   padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15), // Button padding
                 ),
                 child: Text(

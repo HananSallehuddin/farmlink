@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:farmlink/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:farmlink/controllers/CartController.dart';
@@ -39,7 +41,7 @@ class viewCartUI extends StatelessWidget {
                       color: Colors.red, // Background color for swipe
                       alignment: Alignment.centerLeft,
                       child: Icon(
-                        Icons.delete,
+                        Icons.delete,  
                         color: Colors.white,
                         size: 30,
                       ),
@@ -142,8 +144,8 @@ class viewCartUI extends StatelessWidget {
                 Center(
                   child: ElevatedButton(
                     onPressed: () {
-                      // Navigate to checkout or perform checkout action
-                    },
+                        Get.toNamed('checkout');
+                      },
                     child: Text(
                       'Checkout',
                     ),

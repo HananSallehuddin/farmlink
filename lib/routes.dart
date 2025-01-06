@@ -1,3 +1,6 @@
+import 'package:farmlink/views/Customer/addressFormUI.dart';
+import 'package:farmlink/views/Customer/addressList.dart';
+import 'package:farmlink/views/Customer/checkout.dart';
 import 'package:farmlink/views/Customer/viewCartUI.dart';
 import 'package:farmlink/views/Customer/viewProduceUI.dart';
 import 'package:farmlink/views/Seller/productFormUI.dart';
@@ -22,6 +25,10 @@ class Routes{
   static const String updateProduce = '/updateProduce';
   static const String viewProduce = '/viewProduce';
   static const String viewCart = '/viewCart';
+  static const String checkout = '/checkout';
+  static const String addressForm = '/addressForm';
+  static const String addressList = '/addressList';
+
 
 
   //Map routes to pages
@@ -66,6 +73,18 @@ class Routes{
     GetPage(
       name: viewCart,
       page: () => viewCartUI(),
+    ),
+    GetPage(
+      name: checkout,
+      page: () => checkoutUI(),
+    ),
+    GetPage(
+      name: addressForm,
+      page: () => addressFormUI(),
+    ),
+    GetPage(
+      name: addressList,
+      page: () => addressListUI(),
     ),
   ];
 }

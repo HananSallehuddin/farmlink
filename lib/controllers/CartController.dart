@@ -23,6 +23,7 @@ class CartController extends GetxController{
 
   final cartRef = FirebaseFirestore.instance.collection('carts');
   final produceRef = FirebaseFirestore.instance.collection('localProduce');
+  final orderRef = FirebaseFirestore.instance.collection('orders');
 
   @override
   void onInit() {
@@ -332,6 +333,47 @@ Future<void> removeOneProduceFromCart(LocalProduce produce) async {
       totalPrice += calculatePriceForEachProduce(produce);
     });
     return totalPrice;
+  }
+
+  Future<void> createAddress() async{
+     try {
+      // Fetch the current user dynamically
+      User? currentUser = FirebaseAuth.instance.currentUser;
+
+      // Check if the user is logged in
+      if (currentUser == null) {
+        Get.snackbar('Error', 'No user is currently logged in');
+        return;
+      }
+
+      String uid = currentUser.uid; // Get the user's unique ID
+
+      // Check if the cart already exists for the user
+      final cartDoc = await cartRef.doc(uid).get();
+
+      if (cartDoc.exists) {
+        cart.value = Cart.fromJson(cartDoc.data()!);
+      } else {
+        Cart newCart = Cart(
+          cid: uid, // Use user ID as the Cart ID
+          produces: [], // Empty list of produces
+          quantity: {}, // Empty quantity map
+          discount: 0.0, // No discount initially
+          status: 'active', // Default status is active
+          timestamp: DateTime.now(), // Set the current timestamp
+        );
+        // Save the cart to Firestore using the toJson() method
+        await cartRef.doc(uid).set(newCart.toJson());
+        cart.value = newCart;
+      }
+      } catch(e) {
+        print('Error initializing cart: $e');
+        Get.snackbar('Error', 'Failed to initialize cart');
+      }
+  }
+
+  Future<void> checkout() async{
+    final orderRef = FirebaseFirestore.instance.collection('orders');
   }
 
 }

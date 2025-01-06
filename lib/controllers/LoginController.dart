@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:farmlink/controllers/UserController.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 
 class LoginController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final userController = Get.find<UserController>();
 
   var isLoggedIn = false.obs; //reactive state for login status
   var errorMessage = ''.obs; //reactive status for error message
@@ -23,6 +25,12 @@ class LoginController extends GetxController {
       // Check if the email is verified
       if (userCredential.user?.emailVerified ?? false) {
         isLoggedIn.value = true; //login successful
+
+      //  if (userCredential.user != null) {
+      //     userController.setUser(userCredential.user!);
+      //   } else {
+      //     errorMessage.value = 'User not found';
+      //   }
       } else {
         errorMessage.value = 'Please verify email before logging in';
       }
@@ -32,23 +40,6 @@ class LoginController extends GetxController {
       errorMessage.value = 'An unknown error occurred';// Handle other errors
     }
   }
-
-  // Future<String?> getUserRole() async {
-  //   //get current user
-  //   User? user = FirebaseAuth.instance.currentUser;
-  //   if (user != null) {
-  //     //fetch user data from firestore
-  //     DocumentSnapshot snapshot = await FirebaseFirestore.instance
-  //               .collection('users')
-  //               .doc(user.uid)
-  //               .get();
-  //     //check if doc exists
-  //     if (snapshot.exists) {
-  //       return snapshot['role'];
-  //     }
-  //   }
-  //   return null;
-  // }
 
   Future<String?> getUserRole() async {
     //use to retrieve whole object
