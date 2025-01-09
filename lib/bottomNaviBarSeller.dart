@@ -1,3 +1,4 @@
+import 'package:farmlink/controllers/UserController.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:farmlink/styles.dart';
@@ -46,21 +47,20 @@ class bottomNavigationBarSeller extends StatelessWidget {
           // Orders Button
           IconButton(
             icon: Icon(Icons.receipt_long),
-            color: currentRoute == '/orders' ? Colors.white : Styles.subtitleColor,
+            color: currentRoute == '/sellerOrderList' ? Colors.white : Styles.subtitleColor,
             onPressed: () {
-              if (currentRoute != '/orders') {
-                Get.toNamed('/orders');
+              if (currentRoute != '/sellerOrderList') {
+                Get.toNamed('/sellerOrderList');
               }
             },
           ),
           // Profile Button
+          // Logout Button (replacing Profile Button)
           IconButton(
-            icon: Icon(Icons.person),
+            icon: Icon(Icons.exit_to_app),  // Logout icon
             color: currentRoute == '/login' ? Colors.white : Styles.subtitleColor,
-            onPressed: () {
-              if (currentRoute != '/login') {
-                Get.toNamed('/login');
-              }
+            onPressed: () async {
+              Get.find<UserController>().logout(); // Logout method
             },
           ),
         ],

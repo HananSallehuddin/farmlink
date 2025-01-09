@@ -1,12 +1,15 @@
 import 'dart:convert';
 
 import 'package:farmlink/controllers/CartController.dart';
+import 'package:farmlink/controllers/OrderController.dart';
 import 'package:farmlink/controllers/UserController.dart';
 import 'package:farmlink/models/LocalProduce.dart';
 import 'package:farmlink/styles.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+//import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:farmlink/models/Order.dart' as FarmLinkOrder;
+
 
 class checkoutUI extends StatelessWidget {
   const checkoutUI({super.key});
@@ -15,7 +18,8 @@ class checkoutUI extends StatelessWidget {
   Widget build(BuildContext context) {
     final userController = Get.find<UserController>();
     final cartController = Get.find<CartController>();
-    final String currentUID = FirebaseAuth.instance.currentUser!.uid;
+    final orderController = Get.find<OrderController>();
+    //final String currentUID = FirebaseAuth.instance.currentUser!.uid;
 
     final List<LocalProduce> produceList = cartController.cart.value.produces; // Directly access produces
     final double totalPrice = cartController.calculateTotalPrice(); // Calculate total price using CartController
@@ -112,14 +116,28 @@ class checkoutUI extends StatelessWidget {
               Text('Payment Method: Cash On Delivery', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: (){
-                  //confirm order method
-                }, 
-                child: Text(  
-                  'Confirm order'
+                  onPressed: () async {
+                    final selectedAddress = userController.selectedAddress.value;
+
+                    // Debugging to check the address and its reference
+                    print('Selected Address: $selectedAddress');
+                    print('Selected Address Reference: ${selectedAddress?.reference}');
+
+                    // Check if selectedAddress is not null and has a valid reference
+                    if (selectedAddress != null && selectedAddress.reference != null) {
+                      // Proceed with the order creation
+                      await orderController.createOrder(totalPrice, selectedAddress.reference!);
+                      Get.snackbar('Order placed', 'Your order has been placed');
+                      Get.offAllNamed('/homepageCustomer');
+                    } else {
+                      // Show an error message or prompt the user to select an address
+                      Get.snackbar('Error', 'Please select a valid address');
+                    }
+                  },
+                  child: const Text('Confirm order'),
                 ),
-                ),
-                const SizedBox(height: 20),
+                
+                   const SizedBox(height: 20),
             ],
           ),
         );

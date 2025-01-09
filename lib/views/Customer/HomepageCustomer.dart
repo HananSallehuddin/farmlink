@@ -14,6 +14,10 @@ class HomepageCustomer extends StatelessWidget {
     final productController = Get.find<ProductController>();
     final cartController = Get.find<CartController>();
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      cartController.createCart();
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: Row(

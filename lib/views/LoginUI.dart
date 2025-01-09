@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:farmlink/controllers/LoginController.dart';
 import 'package:get/get.dart';
@@ -76,7 +77,7 @@ class LoginUI extends StatelessWidget {
                   children: [
                     TextFormField(
                       decoration: InputDecoration(
-                        labelText: 'Username',
+                        labelText: 'Email',
                         hintText: 'Enter Email',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.0),
@@ -166,8 +167,10 @@ class LoginUI extends StatelessWidget {
                         String? role = await loginController.getUserRole();
                         if (role == 'Seller') {
                           Get.offAllNamed('/homepageSeller');
+                          print('currentUser: ${FirebaseAuth.instance.currentUser!.uid} (seller)');
                         } else if (role == 'Customer') {
                           Get.offAllNamed('/homepageCustomer');
+                          print('currentUser: ${FirebaseAuth.instance.currentUser!.uid} (customer)');
                         }
                       }
                     }

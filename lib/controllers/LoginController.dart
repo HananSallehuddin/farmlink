@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:farmlink/controllers/CartController.dart';
 import 'package:farmlink/controllers/UserController.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
@@ -6,10 +7,26 @@ import 'package:get/get.dart';
 class LoginController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final userController = Get.find<UserController>();
+  var uid = ''.obs;
+  var role = ''.obs;
 
   var isLoggedIn = false.obs; //reactive state for login status
   var errorMessage = ''.obs; //reactive status for error message
 
+   Future<void> clearUserData() async {
+    uid.value = '';  // Clear uid
+    role.value = '';  // Clear role (if applicable)
+
+    // Clear any other relevant data (e.g., cart, addresses)
+    await Get.find<CartController>().clearCart();
+
+    // Optionally reset FirebaseAuth state if needed
+    await FirebaseAuth.instance.signOut();
+
+    // Optionally show feedback
+    Get.snackbar('Logged Out', 'You have been logged out.');
+  }
+  
   // Login user with email and password
   Future<void> loginUser({
     required String email,
@@ -68,5 +85,7 @@ class LoginController extends GetxController {
     return null;
   }
 }
+
+
 
 }

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:farmlink/controllers/UserController.dart';
 import 'package:farmlink/models/UserModel.dart';
 import 'package:flutter/material.dart';
@@ -72,11 +73,13 @@ class addressFormUI extends StatelessWidget {
                       _formKey.currentState!.save();
                       
                       try { 
+                        DocumentReference newAddressRef = FirebaseFirestore.instance.collection('addresses').doc();
                         Address newAddress = Address( 
                         address: _address!,
                         zipCode: _zipCode!,
                         city: _city!,
                         state: _state!,
+                        reference: newAddressRef,
                       );
                       await userController.addAddress(newAddress);
                       Get.back();

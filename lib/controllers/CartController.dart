@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:farmlink/controllers/LoginController.dart';
 import 'package:farmlink/controllers/ProductController.dart';
 import 'package:farmlink/models/Cart.dart';
 import 'package:farmlink/models/LocalProduce.dart';
@@ -28,7 +29,7 @@ class CartController extends GetxController{
   @override
   void onInit() {
     super.onInit();
-    createCart();
+    //createCart();
   }
 
   // Create Cart if it does not exist for the user
@@ -372,8 +373,35 @@ Future<void> removeOneProduceFromCart(LocalProduce produce) async {
       }
   }
 
-  Future<void> checkout() async{
-    final orderRef = FirebaseFirestore.instance.collection('orders');
+  Future<void> clearCart() async {
+  // Clear the cart data
+  if (cart.value.cid.isEmpty) {
+    print('Error: Cart ID is empty');
+    return; // Prevent operation if cart ID is not valid
   }
+  // cart.value = Cart(
+  //   cid: '',
+  //   produces: [],
+  //   quantity: {},
+  //   discount: 0.0,
+  //   status: 'inactive',
+  //   timestamp: DateTime.now(),
+  // );
+  
+  // Optionally, clear the cart in Firestore or update the UI accordingly
+  await FirebaseFirestore.instance.collection('carts').doc(cart.value.cid).update({
+    'produces': [],
+    'quantity': {},
+    'discount': 0.0,
+    'status': 'inactive',
+    'timestamp': DateTime.now(),
+  });
+
+  // Optionally, notify the user about cart reset
+  Get.snackbar('Cart Reset', 'Your cart has been cleared.');
+}
+  // Future<void> checkout() async{
+  //   final orderRef = FirebaseFirestore.instance.collection('orders');
+  // }
 
 }

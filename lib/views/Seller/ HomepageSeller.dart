@@ -8,7 +8,7 @@ import 'package:get/get.dart';
 import 'package:farmlink/controllers/ProductController.dart'; // Import the controller
 
 class HomepageSeller extends StatelessWidget {
-  const HomepageSeller({super.key});
+  //const HomepageSeller({super.key});
 
   @override
   Widget build(BuildContext context) {

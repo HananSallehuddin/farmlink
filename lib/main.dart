@@ -1,8 +1,10 @@
 import 'package:farmlink/controllers/CartController.dart';
 import 'package:farmlink/controllers/LoginController.dart';
+import 'package:farmlink/controllers/OrderController.dart';
 import 'package:farmlink/controllers/ProductController.dart';
 import 'package:farmlink/controllers/UserController.dart';
 import 'package:farmlink/routes.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -14,12 +16,12 @@ void main() async {
   print("Firebase initialized");
   Get.put(UserController());
   Get.put(LoginController());
-
   Get.put(ProductController());
   Get.put(CartController());
+  Get.put(OrderController());
 
   runApp(const MyApp());
-}
+} 
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -35,7 +37,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       //sini nk tukar start mana
-      initialRoute: Routes.homepageCustomer,
+      initialRoute: Routes.landing,
       getPages: Routes.pages,
     );
   }

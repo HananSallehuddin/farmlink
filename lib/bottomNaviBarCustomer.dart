@@ -1,3 +1,4 @@
+import 'package:farmlink/controllers/UserController.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:farmlink/styles.dart';
@@ -13,14 +14,6 @@ class bottomNavigationBarCustomer extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          //chat button
-         IconButton(
-              icon: Icon(Icons.chat),
-              color: Styles.subtitleColor,
-              onPressed: () {
-                Get.toNamed('/chat');
-              },
-            ),
           // Home Button
           IconButton(
             icon: Icon(Icons.home),
@@ -31,15 +24,32 @@ class bottomNavigationBarCustomer extends StatelessWidget {
               }
             },
           ),
-
-          // Profile Button
+          //chat button
+         IconButton(
+              icon: Icon(Icons.chat),
+              color: Styles.subtitleColor,
+              onPressed: () {
+                Get.toNamed('/chat');
+              },
+            ),
+          
+          // Orders Button
           IconButton(
-            icon: Icon(Icons.person),
-            color: currentRoute == '/login' ? Colors.white : Styles.subtitleColor,
+            icon: Icon(Icons.receipt_long),
+            color: currentRoute == '/orderList' ? Colors.white : Styles.subtitleColor,
             onPressed: () {
-              if (currentRoute != '/login') {
-                Get.toNamed('/login');
+              if (currentRoute != '/orderList') {
+                Get.toNamed('/orderList');
               }
+            },
+          ),
+
+         // Logout Button (replacing Profile Button)
+          IconButton(
+            icon: Icon(Icons.exit_to_app),  // Logout icon
+            color: currentRoute == '/login' ? Colors.white : Styles.subtitleColor,
+            onPressed: () async {
+              Get.find<UserController>().logout(); // Logout method
             },
           ),
         ],

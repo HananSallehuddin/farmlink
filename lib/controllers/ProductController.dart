@@ -28,17 +28,24 @@ class ProductController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    currentUserID = FirebaseAuth.instance.currentUser!.uid; 
+    final user = FirebaseAuth.instance.currentUser;
+    currentUserID = user?.uid ?? '';  // Check if user is signed in
+    print('Current User ID: $currentUserID');
+
+    // If no user is authenticated, handle the situation gracefully
     if (currentUserID.isEmpty) {
-      Get.snackbar('Error', 'User not authenticated');
+      print('No user signed in');
+      // Optionally, show a message to the user or proceed without user-specific data
+    } else {
+      fetchProduce();
+      fetchRecycledProduce();
     }
-    fetchProduce();
-    fetchRecycledProduce();
   }
 
   Future<void> addProductToListing() async {
   try {
     // Upload images
+  
     List<String> uploadedImageUrls = await uploadAllImages();
     if (uploadedImageUrls.isEmpty) {
       Get.snackbar('Error', 'No images were uploaded');

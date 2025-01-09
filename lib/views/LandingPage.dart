@@ -1,14 +1,22 @@
+import 'package:farmlink/controllers/LoginController.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:farmlink/styles.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LandingPage extends StatelessWidget {
+  
   @override
   Widget build(BuildContext context) {
+    // Call the initialization logic after the widget is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeUserState();
+    });
+
     return Scaffold(
       body: Container(
         width: double.infinity,
-        color: Colors.white,  // Green background
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 20.0),
           child: Column(
@@ -39,5 +47,16 @@ class LandingPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  // This method handles the logic for user state initialization
+  void _initializeUserState() {
+    if (FirebaseAuth.instance.currentUser == null) {
+      // No user is logged in, reset state
+      Get.find<LoginController>().clearUserData();
+    } else {
+      // User is logged in, fetch their role or other data
+      Get.find<LoginController>().getUserRole();
+    }
   }
 }
