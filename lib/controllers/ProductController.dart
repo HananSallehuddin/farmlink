@@ -19,32 +19,29 @@ class ProductController extends GetxController {
   var stock = 0.obs;
   var expiryDate = Rx<DateTime?>(null);
   late String currentUserID;  
-  var imageUrls = <String>[].obs; // List to hold multiple image URLs
+  var imageUrls = <String>[].obs; 
   var status = 'available'.obs;
   String userRole = '';
   
-
-  // Called when controller is initialized
   @override
-  void onInit() {
-    super.onInit();
-    final user = FirebaseAuth.instance.currentUser;
-    currentUserID = user?.uid ?? '';  // Check if user is signed in
-    print('Current User ID: $currentUserID');
+void onInit() {
+  super.onInit();
 
-    // If no user is authenticated, handle the situation gracefully
-    if (currentUserID.isEmpty) {
-      print('No user signed in');
-      // Optionally, show a message to the user or proceed without user-specific data
-    } else {
+  FirebaseAuth.instance.authStateChanges().listen((user) {
+    if (user != null) {
+      currentUserID = user.uid;
+      print('Current User ID: $currentUserID');
       fetchProduce();
       fetchRecycledProduce();
+    } else {
+      print('No user signed in');
+      Get.snackbar('Notice', 'Please sign in to view your products');
     }
-  }
+  });
+}
 
   Future<void> addProductToListing() async {
   try {
-    // Upload images
   
     List<String> uploadedImageUrls = await uploadAllImages();
     if (uploadedImageUrls.isEmpty) {
@@ -52,13 +49,12 @@ class ProductController extends GetxController {
       return;
     }
 
-    // Use the correct collection for storing the product
-    final produceRef = FirebaseFirestore.instance.collection('localProduce').doc(); // This creates a doc in the 'localProduce' collection
-    final pid = produceRef.id;  // Get the generated doc ID
+    final produceRef = FirebaseFirestore.instance.collection('localProduce').doc(); 
+    final pid = produceRef.id;  
 
     // Create new product object
     LocalProduce newProduce = LocalProduce(
-      pid: pid, // Set the pid to the document ID
+      pid: pid, 
       productName: productName.value,
       price: price.value,
       description: description.value,
@@ -70,9 +66,9 @@ class ProductController extends GetxController {
     );
 
     // Add the product to Firestore
-    await produceRef.set(newProduce.toJson()); // Save the product to the localProduce collection
+    await produceRef.set(newProduce.toJson()); 
 
-    produceList.add(newProduce); // Add to local list
+    produceList.add(newProduce); 
     filterProduce('');
     await fetchProduce();
     Get.snackbar('Success', 'Product added successfully');
@@ -202,10 +198,8 @@ class ProductController extends GetxController {
 
   Future<void> deleteProductFromListing(String pid) async {
   try {
-    // Assuming product is already selected, directly find it in the list
     LocalProduce deletedProduct = produceList.firstWhere((produce) => produce.pid == pid);
 
-    // If found, delete the product from Firestore
     DocumentReference productRef = FirebaseFirestore.instance.collection('localProduce').doc(deletedProduct.pid);
     await productRef.delete();
 
@@ -220,11 +214,6 @@ class ProductController extends GetxController {
   }
 }
 
-  
-
-// Future<void> loadProducts() async{
-//   final product
-// }
 void filterProduce(String query) {
   if(query.isEmpty){
     filteredProduceList.assignAll(produceList);
@@ -238,7 +227,7 @@ void filterProduce(String query) {
   Future<void> pickImage(ImageSource source) async {
     try {
       final picker = ImagePicker();
-      final pickedFiles = await picker.pickMultiImage(); // Use pickMultiImage for multiple selections
+      final pickedFiles = await picker.pickMultiImage(); 
 
       if (pickedFiles != null && pickedFiles.length <= 5) {
         for (var pickedFile in pickedFiles) {

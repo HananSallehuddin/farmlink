@@ -20,6 +20,7 @@ class HomepageCustomer extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Styles.primaryColor,
         title: Row(
           children: [
             // Search bar
@@ -45,6 +46,10 @@ class HomepageCustomer extends StatelessWidget {
         ),
         actions: [
           Obx(() {
+            int totalQuantity = cartController.cart.value.quantity.isEmpty
+                ? 0
+                : cartController.cart.value.quantity.values.fold<int>(
+                    0, (prev, qty) => prev + qty);
             return IconButton(
               icon: Stack(
                 children: [
@@ -56,10 +61,9 @@ class HomepageCustomer extends StatelessWidget {
                       radius: 8,
                       backgroundColor: Colors.amber,
                       child: Text(
-                        '${cartController.cart.value.quantity.isEmpty ? 0 
-                        : cartController.cart.value.quantity.values.fold<int>(0, (prev, qty) => prev + qty)}',
-                        style: TextStyle(fontSize: 12, color: Colors.black),
-                      ),
+                          '$totalQuantity',
+                          style: TextStyle(fontSize: 12, color: Colors.black),
+                        ),
                     ),
                   ),
                 ],

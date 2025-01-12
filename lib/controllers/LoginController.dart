@@ -10,20 +10,15 @@ class LoginController extends GetxController {
   var uid = ''.obs;
   var role = ''.obs;
 
-  var isLoggedIn = false.obs; //reactive state for login status
-  var errorMessage = ''.obs; //reactive status for error message
+  var isLoggedIn = false.obs; 
+  var errorMessage = ''.obs; 
 
    Future<void> clearUserData() async {
-    uid.value = '';  // Clear uid
-    role.value = '';  // Clear role (if applicable)
+    uid.value = '';  
+    role.value = '';  
 
-    // Clear any other relevant data (e.g., cart, addresses)
-    await Get.find<CartController>().clearCart();
-
-    // Optionally reset FirebaseAuth state if needed
     await FirebaseAuth.instance.signOut();
 
-    // Optionally show feedback
     Get.snackbar('Logged Out', 'You have been logged out.');
   }
   
@@ -42,24 +37,17 @@ class LoginController extends GetxController {
       // Check if the email is verified
       if (userCredential.user?.emailVerified ?? false) {
         isLoggedIn.value = true; //login successful
-
-      //  if (userCredential.user != null) {
-      //     userController.setUser(userCredential.user!);
-      //   } else {
-      //     errorMessage.value = 'User not found';
-      //   }
       } else {
         errorMessage.value = 'Please verify email before logging in';
       }
     } on FirebaseAuthException catch (e) {
-      errorMessage.value = e.message ?? 'Login failed'; // Return error message if login fails
+      errorMessage.value = e.message ?? 'Login failed'; 
     } catch (e) {
-      errorMessage.value = 'An unknown error occurred';// Handle other errors
+      errorMessage.value = 'An unknown error occurred';
     }
   }
 
   Future<String?> getUserRole() async {
-    //use to retrieve whole object
   User? user = FirebaseAuth.instance.currentUser;
   if (user != null) {
     print('User UID: ${user.uid}');

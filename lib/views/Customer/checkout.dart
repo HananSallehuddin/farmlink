@@ -21,11 +21,12 @@ class checkoutUI extends StatelessWidget {
     final orderController = Get.find<OrderController>();
     //final String currentUID = FirebaseAuth.instance.currentUser!.uid;
 
-    final List<LocalProduce> produceList = cartController.cart.value.produces; // Directly access produces
-    final double totalPrice = cartController.calculateTotalPrice(); // Calculate total price using CartController
+    final List<LocalProduce> produceList = cartController.cart.value.produces; 
+    final double totalPrice = cartController.calculateTotalPrice();
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Styles.primaryColor,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Get.back(),
@@ -35,7 +36,6 @@ class checkoutUI extends StatelessWidget {
       body: Obx(() {
         var selectedAddress = userController.selectedAddress.value;
 
-        // Check if the address is selected, otherwise show an option to add a new address
         if (selectedAddress == null) {
           return Center(
             child: ElevatedButton(
@@ -47,7 +47,6 @@ class checkoutUI extends StatelessWidget {
           );
         }
 
-        // If an address is selected, display it with a border and filling the row
         return Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -62,8 +61,8 @@ class checkoutUI extends StatelessWidget {
                 child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Styles.primaryColor, // Light blue background for selected address
-                  border: Border.all(color: Colors.green.shade50, width: 2), // Blue border for selected address
+                  color: Styles.primaryColor, 
+                  border: Border.all(color: Colors.green.shade50, width: 2), 
                   borderRadius: BorderRadius.circular(8),
                   boxShadow: [
                     BoxShadow(
@@ -104,39 +103,98 @@ class checkoutUI extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final product = produceList[index];
                     return ListTile(
+                      contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 0),
+                      leading: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: SizedBox(
+                          width: 50, 
+                          height: 50, 
+                          child: Image.network(
+                            product.imageUrls.isNotEmpty ? product.imageUrls[0] : 'default_image_url', 
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
                       title: Text(product.productName),
-                      subtitle: Text('${product.price.toStringAsFixed(2)}'),
+                      subtitle: Text('\RM${product.price.toStringAsFixed(2)}'),
                     );
                   },
                 ),
               ),
-              // Display total price
+              
               Text('Total Price: \RM${totalPrice.toStringAsFixed(2)}', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 20),
-              Text('Payment Method: Cash On Delivery', style: Theme.of(context).textTheme.titleLarge),
+              Text('Payment Method:', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Styles.primaryColor,
+                  border: Border.all(color: Colors.green.shade50, width: 2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.check_circle, color: Colors.green),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Cash On Delivery',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 20),
-              ElevatedButton(
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200, 
+                  border: Border.all(color: Colors.grey, width: 2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.block, color: Colors.grey), 
+                    const SizedBox(width: 10),
+                    Text(
+                      'Credit/Debit Card ',
+                      style: Theme.of(context).textTheme.titleMedium!.copyWith(color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              Center(
+                child: ElevatedButton(
                   onPressed: () async {
                     final selectedAddress = userController.selectedAddress.value;
 
-                    // Debugging to check the address and its reference
                     print('Selected Address: $selectedAddress');
                     print('Selected Address Reference: ${selectedAddress?.reference}');
 
-                    // Check if selectedAddress is not null and has a valid reference
                     if (selectedAddress != null && selectedAddress.reference != null) {
-                      // Proceed with the order creation
+        
                       await orderController.createOrder(totalPrice, selectedAddress.reference!);
+                      cartController.cart.refresh();
                       Get.snackbar('Order placed', 'Your order has been placed');
                       Get.offAllNamed('/homepageCustomer');
                     } else {
-                      // Show an error message or prompt the user to select an address
                       Get.snackbar('Error', 'Please select a valid address');
                     }
                   },
-                  child: const Text('Confirm order'),
+                  child: Text(
+                    'Confirm Order',
+                    style: TextStyle(
+                      fontSize: 20,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Styles.primaryColor,  
+                    padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                    
+                  ),
                 ),
-                
+              ),
                    const SizedBox(height: 20),
             ],
           ),

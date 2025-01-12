@@ -3,10 +3,10 @@ import 'package:farmlink/models/LocalProduce.dart';
 
 class Cart {
   final String cid;
-  List<LocalProduce> produces; //list of localproduce objects
-  Map<String, int> quantity; //map to store quantity of each produce (using pid as key)
+  List<LocalProduce> produces; 
+  Map<String, int> quantity; 
   double discount;
-  String status; //cart status
+  String status; 
   DateTime timestamp;
 
   Cart({
@@ -25,7 +25,7 @@ class Cart {
       'quantity': quantity,
       'discount': discount,
       'status': status,
-      'timestamp': Timestamp.fromDate(timestamp), //convert timestamp to firestore format
+      'timestamp': Timestamp.fromDate(timestamp), 
     };
   }
 

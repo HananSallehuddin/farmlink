@@ -20,6 +20,7 @@ class viewProduceUI extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Styles.primaryColor,
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () => Get.back(),
@@ -98,7 +99,6 @@ class viewProduceUI extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Price and Rating Row
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -147,7 +147,6 @@ class viewProduceUI extends StatelessWidget {
                       }),
                       
                       SizedBox(height: 16),
-                      // Add to Cart Button
                       Center(
                         child: ElevatedButton.icon(
                           onPressed: produce.stock > 0 
@@ -155,7 +154,6 @@ class viewProduceUI extends StatelessWidget {
                                 cartController.addProduceToCart(produce);
                                }
                             : null,
-                          // icon: Icon(Icons.add_shopping_cart),
                           label: Text(
                             produce.stock > 0 ? 'Add to cart' : 'Out of stock',
                           ),
@@ -166,7 +164,7 @@ class viewProduceUI extends StatelessWidget {
                             padding: EdgeInsets.symmetric(
                                 horizontal: 32, vertical: 12),
                             textStyle: TextStyle(fontSize: 16),
-                          ), //disable button if out of stock                        
+                          ),                        
                         ),
                       ),
                     ],

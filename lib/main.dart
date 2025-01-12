@@ -36,8 +36,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Styles.primaryColor),
         useMaterial3: true,
       ),
-      //sini nk tukar start mana
-      initialRoute: Routes.landing,
+      initialRoute: Routes.homepageCustomer,
       getPages: Routes.pages,
     );
   }

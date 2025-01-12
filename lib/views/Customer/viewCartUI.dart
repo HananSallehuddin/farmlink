@@ -12,6 +12,7 @@ class viewCartUI extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Styles.primaryColor,
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () => Get.back(),
@@ -34,11 +35,11 @@ class viewCartUI extends StatelessWidget {
                   var quantity = cartController.cart.value.quantity[produce.pid] ?? 0;
 
                   return Dismissible(
-                    key: Key(produce.pid), // Unique key for each item
-                    direction: DismissDirection.startToEnd, // Swipe left-to-right only
+                    key: Key(produce.pid), 
+                    direction: DismissDirection.startToEnd, 
                     background: Container(
                       padding: EdgeInsets.only(left: 20),
-                      color: Colors.red, // Background color for swipe
+                      color: Colors.red, 
                       alignment: Alignment.centerLeft,
                       child: Icon(
                         Icons.delete,  
@@ -47,7 +48,6 @@ class viewCartUI extends StatelessWidget {
                       ),
                     ),
                     onDismissed: (direction) {
-                      // Remove item from the cart
                       cartController.removeProduceFromCart(produce);
                     },
                     child: Padding(
@@ -111,53 +111,68 @@ class viewCartUI extends StatelessWidget {
                 },
               ),
             ),
-            // Total Price and Checkout Button
             Container(
               padding: EdgeInsets.all(30.0),
-              //color: Colors.white,
+              decoration: BoxDecoration(
+                color: Theme.of(context).scaffoldBackgroundColor,  
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(30),
+                  topRight: Radius.circular(30),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    spreadRadius: 2,
+                    blurRadius: 5,
+                    offset: Offset(0, -2),
+                  ),
+                ],
+              ),
               child: Column(
                 children: [
+                  // Total Price Section
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         'Total:',
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 22,
                           fontWeight: FontWeight.bold,
+                          color: Colors.black87,
                         ),
                       ),
-                        Obx(() {
+                      Obx(() {
                         double totalPrice = cartController.calculateTotalPrice();
                         return Text(
-                        'RM${totalPrice.toStringAsFixed(2)}',
-                        style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                            ),
-                          );
-                        }),
+                          'RM${totalPrice.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Styles.primaryColor,
+                          ),
+                        );
+                      }),
                     ],
                   ),
                   SizedBox(height: 20),
-
-                Center(
-                  child: ElevatedButton(
-                    onPressed: () {
+                  // Checkout Button
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: () {
                         Get.toNamed('checkout');
                       },
-                    child: Text(
-                      'Checkout',
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Styles.primaryColor,  // Set the button color
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 32, vertical: 12
+                      child: Text(
+                        'Checkout',
+                        //style: TextStyle(fontSize: 20, color: Colors.black),
                       ),
-                      textStyle: TextStyle(fontSize: 20, color: Colors.black),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Styles.primaryColor,
+                        padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                        textStyle: TextStyle(fontSize: 20),
+                      ),
                     ),
                   ),
-                ),
                 ],
               ),
             ),

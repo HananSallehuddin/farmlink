@@ -2,11 +2,13 @@ import 'package:farmlink/views/Customer/addressFormUI.dart';
 import 'package:farmlink/views/Customer/addressList.dart';
 import 'package:farmlink/views/Customer/checkout.dart';
 import 'package:farmlink/views/Customer/orderListUI.dart';
+import 'package:farmlink/views/Customer/trackOrderUI.dart';
 import 'package:farmlink/views/Customer/viewCartUI.dart';
 import 'package:farmlink/views/Customer/viewProduceUI.dart';
 import 'package:farmlink/views/Seller/productFormUI.dart';
 import 'package:farmlink/views/Seller/recycleUI.dart';
 import 'package:farmlink/views/Seller/sellerOrderListUI.dart';
+import 'package:farmlink/views/Seller/updateOrderStatusUI.dart';
 import 'package:farmlink/views/Seller/updateProduceUI.dart';
 import 'package:get/get.dart';
 import 'package:farmlink/views/LandingPage.dart';
@@ -32,7 +34,8 @@ class Routes{
   static const String addressList = '/addressList';
   static const String orderList = '/orderList';
   static const String sellerOrderList = '/sellerOrderList';
-
+  static const String updateOrderStatus = '/updateOrderStatus';
+  static const String trackOrder = '/trackOrder';
 
 
   //Map routes to pages
@@ -97,6 +100,14 @@ class Routes{
     GetPage(
       name: sellerOrderList,
       page: () => sellerOrderListUI(),
+    ),
+    GetPage(
+      name: updateOrderStatus,
+      page: () => updateOrderStatusUI(),
+    ),
+    GetPage(
+      name: trackOrder,
+      page: () => trackOrderUI(),
     ),
   ];
 }

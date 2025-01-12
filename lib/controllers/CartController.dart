@@ -145,25 +145,23 @@ class CartController extends GetxController{
         'status': updatedStatus,
       });
 
-      // Use addPostFrameCallback to update stock after the build phase
       WidgetsBinding.instance.addPostFrameCallback((_) {
         //update stock in product controller to reflect real-time in ui
       productController.stock.value = updatedStock;
       });
 
-      //refresh cart to trigger ui update
       cart.refresh();
 
       //cart expiration logic
-      final expirationTime = cart.value.timestamp.add(Duration(hours: 24)); // 24-hour expiration
+      final expirationTime = cart.value.timestamp.add(Duration(hours: 24)); 
       final currentTime = DateTime.now();
 
       if (currentTime.isAfter(expirationTime)) {
         // Cart expired, release stock back to inventory and reset cart
         for (var pid in cart.value.quantity.keys) {
           final expiredProduce = cart.value.produces.firstWhere((prod) => prod.pid == pid);
-          expiredProduce.stock += cart.value.quantity[pid]!; // Increase stock
-          expiredProduce.status = 'available'; // Update status back to available
+          expiredProduce.stock += cart.value.quantity[pid]!;
+          expiredProduce.status = 'available'; 
 
           // Update Firestore with the released stock
           transaction.update(produceRef.doc(expiredProduce.pid), {
@@ -177,7 +175,6 @@ class CartController extends GetxController{
         cart.value.quantity.clear();
       }
 
-      // update the cart's timestamp and other necessary fields in Firestore if needed
       await FirebaseFirestore.instance.collection('carts').doc(cart.value.cid).update({
         'timestamp': cart.value.timestamp,
         'produces': cart.value.produces.map((e) => e.toJson()).toList(),
@@ -338,17 +335,14 @@ Future<void> removeOneProduceFromCart(LocalProduce produce) async {
 
   Future<void> createAddress() async{
      try {
-      // Fetch the current user dynamically
       User? currentUser = FirebaseAuth.instance.currentUser;
 
-      // Check if the user is logged in
       if (currentUser == null) {
         Get.snackbar('Error', 'No user is currently logged in');
         return;
       }
 
-      String uid = currentUser.uid; // Get the user's unique ID
-
+      String uid = currentUser.uid; 
       // Check if the cart already exists for the user
       final cartDoc = await cartRef.doc(uid).get();
 
@@ -356,14 +350,14 @@ Future<void> removeOneProduceFromCart(LocalProduce produce) async {
         cart.value = Cart.fromJson(cartDoc.data()!);
       } else {
         Cart newCart = Cart(
-          cid: uid, // Use user ID as the Cart ID
-          produces: [], // Empty list of produces
-          quantity: {}, // Empty quantity map
-          discount: 0.0, // No discount initially
-          status: 'active', // Default status is active
-          timestamp: DateTime.now(), // Set the current timestamp
+          cid: uid, 
+          produces: [], 
+          quantity: {}, 
+          discount: 0.0,
+          status: 'active', 
+          timestamp: DateTime.now(), 
         );
-        // Save the cart to Firestore using the toJson() method
+      
         await cartRef.doc(uid).set(newCart.toJson());
         cart.value = newCart;
       }
@@ -372,36 +366,5 @@ Future<void> removeOneProduceFromCart(LocalProduce produce) async {
         Get.snackbar('Error', 'Failed to initialize cart');
       }
   }
-
-  Future<void> clearCart() async {
-  // Clear the cart data
-  if (cart.value.cid.isEmpty) {
-    print('Error: Cart ID is empty');
-    return; // Prevent operation if cart ID is not valid
-  }
-  // cart.value = Cart(
-  //   cid: '',
-  //   produces: [],
-  //   quantity: {},
-  //   discount: 0.0,
-  //   status: 'inactive',
-  //   timestamp: DateTime.now(),
-  // );
-  
-  // Optionally, clear the cart in Firestore or update the UI accordingly
-  await FirebaseFirestore.instance.collection('carts').doc(cart.value.cid).update({
-    'produces': [],
-    'quantity': {},
-    'discount': 0.0,
-    'status': 'inactive',
-    'timestamp': DateTime.now(),
-  });
-
-  // Optionally, notify the user about cart reset
-  Get.snackbar('Cart Reset', 'Your cart has been cleared.');
-}
-  // Future<void> checkout() async{
-  //   final orderRef = FirebaseFirestore.instance.collection('orders');
-  // }
 
 }
