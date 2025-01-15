@@ -126,7 +126,7 @@ class addressFormUI extends StatelessWidget {
       keyboardType: keyboardType,
       validator: validator,
       onSaved: onSaved,
-      autovalidateMode: AutovalidateMode.onUserInteraction, // This makes validation happen when user interacts with the field
+      autovalidateMode: AutovalidateMode.onUserInteraction, 
 
     );
   }

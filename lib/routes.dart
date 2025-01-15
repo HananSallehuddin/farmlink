@@ -2,9 +2,12 @@ import 'package:farmlink/views/Customer/addressFormUI.dart';
 import 'package:farmlink/views/Customer/addressList.dart';
 import 'package:farmlink/views/Customer/checkout.dart';
 import 'package:farmlink/views/Customer/orderListUI.dart';
+import 'package:farmlink/views/Customer/rateProduceFormUI.dart';
+import 'package:farmlink/views/Customer/ratingList.dart';
 import 'package:farmlink/views/Customer/trackOrderUI.dart';
 import 'package:farmlink/views/Customer/viewCartUI.dart';
 import 'package:farmlink/views/Customer/viewProduceUI.dart';
+import 'package:farmlink/views/Seller/analyticUI.dart';
 import 'package:farmlink/views/Seller/productFormUI.dart';
 import 'package:farmlink/views/Seller/recycleUI.dart';
 import 'package:farmlink/views/Seller/sellerOrderListUI.dart';
@@ -36,6 +39,10 @@ class Routes{
   static const String sellerOrderList = '/sellerOrderList';
   static const String updateOrderStatus = '/updateOrderStatus';
   static const String trackOrder = '/trackOrder';
+  static const String analytic = '/analytic';
+  static const String ratingList = '/ratingList';
+  static const String rateProduce = '/rateProduce';
+
 
 
   //Map routes to pages
@@ -108,6 +115,18 @@ class Routes{
     GetPage(
       name: trackOrder,
       page: () => trackOrderUI(),
+    ),
+    GetPage(
+      name: analytic,
+      page: () => analyticUI(),
+    ),
+    GetPage(
+      name: ratingList,
+      page: () => ratingListUI(),
+    ),
+    GetPage(
+      name: rateProduce,
+      page: () => rateProduceFormUI(),
     ),
   ];
 }

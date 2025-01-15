@@ -29,7 +29,6 @@ class CartController extends GetxController{
   @override
   void onInit() {
     super.onInit();
-    //createCart();
   }
 
   // Create Cart if it does not exist for the user
@@ -333,38 +332,38 @@ Future<void> removeOneProduceFromCart(LocalProduce produce) async {
     return totalPrice;
   }
 
-  Future<void> createAddress() async{
-     try {
-      User? currentUser = FirebaseAuth.instance.currentUser;
+  // Future<void> createAddress() async{
+  //    try {
+  //     User? currentUser = FirebaseAuth.instance.currentUser;
 
-      if (currentUser == null) {
-        Get.snackbar('Error', 'No user is currently logged in');
-        return;
-      }
+  //     if (currentUser == null) {
+  //       Get.snackbar('Error', 'No user is currently logged in');
+  //       return;
+  //     }
 
-      String uid = currentUser.uid; 
-      // Check if the cart already exists for the user
-      final cartDoc = await cartRef.doc(uid).get();
+  //     String uid = currentUser.uid; 
+  //     // Check if the cart already exists for the user
+  //     final cartDoc = await cartRef.doc(uid).get();
 
-      if (cartDoc.exists) {
-        cart.value = Cart.fromJson(cartDoc.data()!);
-      } else {
-        Cart newCart = Cart(
-          cid: uid, 
-          produces: [], 
-          quantity: {}, 
-          discount: 0.0,
-          status: 'active', 
-          timestamp: DateTime.now(), 
-        );
+  //     if (cartDoc.exists) {
+  //       cart.value = Cart.fromJson(cartDoc.data()!);
+  //     } else {
+  //       Cart newCart = Cart(
+  //         cid: uid, 
+  //         produces: [], 
+  //         quantity: {}, 
+  //         discount: 0.0,
+  //         status: 'active', 
+  //         timestamp: DateTime.now(), 
+  //       );
       
-        await cartRef.doc(uid).set(newCart.toJson());
-        cart.value = newCart;
-      }
-      } catch(e) {
-        print('Error initializing cart: $e');
-        Get.snackbar('Error', 'Failed to initialize cart');
-      }
-  }
+  //       await cartRef.doc(uid).set(newCart.toJson());
+  //       cart.value = newCart;
+  //     }
+  //     } catch(e) {
+  //       print('Error initializing cart: $e');
+  //       Get.snackbar('Error', 'Failed to initialize cart');
+  //     }
+  // }
 
 }

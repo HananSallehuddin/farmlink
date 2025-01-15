@@ -20,8 +20,8 @@ class LocalProduce {
     required this.imageUrls,
     required this.stock,
     required this.expiryDate,
-    this.status = 'available', //default status
-    this.userRef, //optional parameter to link product to user
+    this.status = 'available',
+    this.userRef, 
   });
   //convert to firestore-compatible map
   Map<String, dynamic> toJson() {

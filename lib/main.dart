@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Styles.primaryColor),
         useMaterial3: true,
       ),
-      initialRoute: Routes.homepageCustomer,
+      initialRoute: Routes.landing,
       getPages: Routes.pages,
     );
   }

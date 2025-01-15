@@ -44,6 +44,16 @@ class bottomNavigationBarSeller extends StatelessWidget {
               }
             },
           ),
+          // recycle produce button
+          IconButton(
+            icon: Icon(Icons.bar_chart),
+            color: currentRoute == '/analytic' ? Colors.white : Styles.subtitleColor,
+            onPressed: () {
+              if (currentRoute != '/analytic') {
+                Get.toNamed('/analytic');
+              }
+            },
+          ),
           // Orders Button
           IconButton(
             icon: Icon(Icons.receipt_long),

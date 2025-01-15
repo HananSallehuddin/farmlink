@@ -107,16 +107,22 @@ class viewProduceUI extends StatelessWidget {
                             style: const TextStyle(
                                 fontSize: 24, fontWeight: FontWeight.bold),
                           ),
-                          const Row(
+                          GestureDetector(
+                            onTap: () {
+                              Get.toNamed('/ratingList', parameters: {'pid': produce.pid.toString()});
+                            },
+                            child: const Row(
                             children: [
                               Icon(Icons.star, color: Colors.amber, size: 20),
                               SizedBox(width: 4),
                               Text(
-                                '4.89 (1000+)',
+                                'Ratings',
                                 style: TextStyle(fontSize: 16),
                               ),
                             ],
                           ),
+                          )
+                          
                         ],
                       ),
                       SizedBox(height: 8),
