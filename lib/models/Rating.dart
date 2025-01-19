@@ -8,6 +8,7 @@ class Rating{
   DocumentReference? customerRef;
   DocumentReference? sellerRef;
   DocumentReference? produceRef;
+  String type;
 
   Rating({
     required this.rid,
@@ -17,6 +18,7 @@ class Rating{
     this.customerRef,
     this.sellerRef,
     this.produceRef,
+    required this.type,
   });
 
   Map<String, dynamic> toJson(){
@@ -28,6 +30,7 @@ class Rating{
       'customerRef': customerRef,
       'sellerRef': sellerRef,
       'produceRef': produceRef,
+      'type': type,
     };
   }
 
@@ -40,6 +43,7 @@ class Rating{
       customerRef: json['customerRef'] as DocumentReference?,
       sellerRef: json['sellerRef'] as DocumentReference?,
       produceRef: json['produceRef'] as DocumentReference?,
+      type: json['type'] as String,
       );
   }
 }

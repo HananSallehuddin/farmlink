@@ -66,6 +66,7 @@ class rateProduceFormUI extends StatelessWidget {
                       dateRated: DateTime.now(),
                       sellerRef: sellerRef,
                       produceRef: FirebaseFirestore.instance.collection('localProduce').doc(pid),
+                      type: 'produce',
                     );
 
                     // Use the pid to add the rating

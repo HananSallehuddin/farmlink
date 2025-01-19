@@ -1,18 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:farmlink/controllers/LoginController.dart';
 import 'package:farmlink/controllers/ProductController.dart';
 import 'package:farmlink/models/Cart.dart';
 import 'package:farmlink/models/LocalProduce.dart';
-import 'package:farmlink/models/UserModel.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class CartController extends GetxController{
-
+class CartController extends GetxController {
   final productController = Get.find<ProductController>();
-  
-  //reactive cart object
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
   var cart = Cart(
     cid: 'cid',
     produces: [],
@@ -22,348 +20,362 @@ class CartController extends GetxController{
     timestamp: DateTime.now(),
   ).obs;
 
-  final cartRef = FirebaseFirestore.instance.collection('carts');
-  final produceRef = FirebaseFirestore.instance.collection('localProduce');
-  final orderRef = FirebaseFirestore.instance.collection('orders');
-
   @override
   void onInit() {
     super.onInit();
+    _setupCartListener();
   }
 
-  // Create Cart if it does not exist for the user
-   Future<void> createCart() async {
-    try {
-      // Fetch the current user dynamically
-      User? currentUser = FirebaseAuth.instance.currentUser;
+  void _setupCartListener() {
+    _auth.authStateChanges().listen((User? user) {
+      if (user != null) {
+        createCart();
+      } else {
+        // Clear cart when user logs out
+        cart.value = Cart(
+          cid: 'cid',
+          produces: [],
+          quantity: {},
+          discount: 0.0,
+          status: 'active',
+          timestamp: DateTime.now(),
+        );
+      }
+    });
+  }
 
-      // Check if the user is logged in
+  Future<void> createCart() async {
+    try {
+      User? currentUser = _auth.currentUser;
       if (currentUser == null) {
         Get.snackbar('Error', 'No user is currently logged in');
         return;
       }
 
-      String uid = currentUser.uid; // Get the user's unique ID
-
-      // Check if the cart already exists for the user
-      final cartDoc = await cartRef.doc(uid).get();
+      String uid = currentUser.uid;
+      final cartDoc = await _firestore.collection('carts').doc(uid).get();
 
       if (cartDoc.exists) {
         cart.value = Cart.fromJson(cartDoc.data()!);
+        // Check for expired cart
+        if (cart.value.isExpired()) {
+          await resetExpiredCart(uid);
+        }
       } else {
         Cart newCart = Cart(
-          cid: uid, // Use user ID as the Cart ID
-          produces: [], // Empty list of produces
-          quantity: {}, // Empty quantity map
-          discount: 0.0, // No discount initially
-          status: 'active', // Default status is active
-          timestamp: DateTime.now(), // Set the current timestamp
+          cid: uid,
+          produces: [],
+          quantity: {},
+          discount: 0.0,
+          status: 'active',
+          timestamp: DateTime.now(),
         );
-        // Save the cart to Firestore using the toJson() method
-        await cartRef.doc(uid).set(newCart.toJson());
+        await _firestore.collection('carts').doc(uid).set(newCart.toJson());
         cart.value = newCart;
       }
-      } catch(e) {
-        print('Error initializing cart: $e');
-        Get.snackbar('Error', 'Failed to initialize cart');
-      }
-    } 
+    } catch(e) {
+      print('Error initializing cart: $e');
+      //Get.snackbar('Error', 'Failed to initialize cart');
+    }
+  }
 
-
-  //add produce to cart
   Future<void> addProduceToCart(LocalProduce produce) async {
-  try {
-    // Ensure user is logged in
-    User? currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) {
-      Get.snackbar('Error', 'No user is currently logged in');
-      return;
-    }
-    // String uid = currentUser.uid;
-    if (produce.pid == null || produce.pid!.isEmpty) { 
-      Get.snackbar('Error', 'Invalid pid');
-      return;
-    }
-
-    print('Adding product with pid: ${produce.pid} to cart.');
-
-    if (produce.stock == 0) {
-      Get.snackbar('Out of stock', 'Produce is out of stock');
-      return;
-    }
-
-    // Start a Firestore transaction to ensure consistency and avoid race conditions
-    await FirebaseFirestore.instance.runTransaction((transaction) async {
-      // Refetch the produce document to get the latest data
-      final produceDoc = await transaction.get(produceRef.doc(produce.pid));
-      print('Attempting to fetch produce with pid: ${produce.pid}');
-
-      if (!produceDoc.exists) {
-        throw Exception('Produces not found');
+    try {
+      User? currentUser = _auth.currentUser;
+      if (currentUser == null) {
+        Get.snackbar('Error', 'No user is currently logged in');
+        return;
       }
 
-      //log document data
-      print('Document data: ${produceDoc.data()}');
-
-      // Get the current stock from the document
-      final currentStock = produceDoc['stock'];
-      final currentStatus = produceDoc['status'];
-
-      // Check if stock is sufficient
-      if (currentStock == 0) {
-        throw Exception('Produce is out of stock');
+      if (produce.pid.isEmpty) {
+        Get.snackbar('Error', 'Invalid product ID');
+        return;
       }
 
-      // Check if the cart already contains the product
-      if (cart.value.quantity.containsKey(produce.pid)) {
-        print('Cart quantity for ${produce.pid}: ${cart.value.quantity[produce.pid]}');
-        print('Available stock for ${produce.pid}: $currentStock');
-        if (currentStock>0) {
-          // Update quantity in the cart if stock is available
-          cart.value.quantity[produce.pid] = cart.value.quantity[produce.pid]! + 1;
+      await _firestore.runTransaction((transaction) async {
+        final produceDoc = await transaction.get(_firestore.collection('localProduce').doc(produce.pid));
+        
+        if (!produceDoc.exists) {
+          throw Exception('Product not found');
+        }
+
+        final currentStock = produceDoc.data()!['stock'] as int;
+        final currentStatus = produceDoc.data()!['status'] as String;
+
+        if (currentStock == 0) {
+          throw Exception('Product is out of stock');
+        }
+
+        if (cart.value.quantity.containsKey(produce.pid)) {
+          if (currentStock > 0) {
+            cart.value.quantity[produce.pid] = cart.value.quantity[produce.pid]! + 1;
+          } else{
+            throw Exception('Cannot add more quantity of this product to the cart');
+          }
+          
         } else {
-          // Handle insufficient stock in the cart
-          throw Exception('Cannot add more quantity of this produce to the cart');
+          cart.value.produces.add(produce);
+          cart.value.quantity[produce.pid] = 1;
         }
-      } else {
-        // Add produce to cart and set quantity to 1
-        cart.value.produces.add(produce);
-        cart.value.quantity[produce.pid] = 1;
-      }
 
-      // Decrease stock in local produce and update status if stock is zero
-      int updatedStock = currentStock - 1;
-      String updatedStatus = updatedStock == 0 ? 'out of stock' : currentStatus;
+        int updatedStock = currentStock - 1;
+        String updatedStatus = updatedStock == 0 ? 'out of stock' : currentStatus;
 
-      // Set timestamp for cart expiration check
-      cart.value.timestamp = DateTime.now();
+        cart.value.timestamp = DateTime.now();
+        cart.value.calculateTotalAmount();
 
-      // Update the produce document in Firestore with the new stock and status
-      transaction.update(produceRef.doc(produce.pid), {
-        'stock': updatedStock,
-        'status': updatedStatus,
-      });
+        transaction.update(_firestore.collection('localProduce').doc(produce.pid), {
+          'stock': updatedStock,
+          'status': updatedStatus,
+        });
 
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        //update stock in product controller to reflect real-time in ui
-      productController.stock.value = updatedStock;
+        await _firestore.collection('carts').doc(cart.value.cid).update(cart.value.toJson());
       });
 
       cart.refresh();
+      Get.snackbar('Success', 'Product added to cart');
+    } catch (e) {
+      Get.snackbar('Error', e.toString());
+    }
+  }
 
-      //cart expiration logic
-      final expirationTime = cart.value.timestamp.add(Duration(hours: 24)); 
-      final currentTime = DateTime.now();
+  Future<void> removeOneProduceFromCart(LocalProduce produce) async {
+    try {
+      if (produce.pid.isEmpty || !cart.value.quantity.containsKey(produce.pid)) {
+        return;
+      }
 
-      if (currentTime.isAfter(expirationTime)) {
-        // Cart expired, release stock back to inventory and reset cart
-        for (var pid in cart.value.quantity.keys) {
-          final expiredProduce = cart.value.produces.firstWhere((prod) => prod.pid == pid);
-          expiredProduce.stock += cart.value.quantity[pid]!;
-          expiredProduce.status = 'available'; 
-
-          // Update Firestore with the released stock
-          transaction.update(produceRef.doc(expiredProduce.pid), {
-            'stock': expiredProduce.stock,
-            'status': expiredProduce.status,
-          });
+      await _firestore.runTransaction((transaction) async {
+        final produceDoc = await transaction.get(_firestore.collection('localProduce').doc(produce.pid));
+        
+        if (!produceDoc.exists) {
+          throw Exception('Product not found');
         }
 
-        // Clear expired cart items
-        cart.value.produces.clear();
-        cart.value.quantity.clear();
-      }
+        int currentQuantity = cart.value.quantity[produce.pid] ?? 0;
+        if (currentQuantity <= 1) {
+          // If only one item, remove the product completely
+          await removeProduceFromCart(produce);
+          return;
+        }
 
-      await FirebaseFirestore.instance.collection('carts').doc(cart.value.cid).update({
-        'timestamp': cart.value.timestamp,
-        'produces': cart.value.produces.map((e) => e.toJson()).toList(),
-        'quantity': cart.value.quantity,
-        'discount': cart.value.discount,
-        'status': cart.value.status,
-      });
-    });
-    Get.snackbar('Success', 'Product added to the cart');
-  } catch (e) {
-    Get.snackbar('Error', e.toString());
-    print('Error adding produce to cart: $e');
-  }
-}
+        // Decrease quantity by 1
+        cart.value.quantity[produce.pid] = currentQuantity - 1;
 
-Future<void> removeProduceFromCart(LocalProduce produce) async {
-  try{
-    if (produce.pid == null || produce.pid!.isEmpty){
-      return;
-    }
-    print('Removing produce with pid: ${produce.pid} from cart');
+        // Update stock in product
+        int currentStock = produceDoc.data()!['stock'] as int;
+        transaction.update(_firestore.collection('localProduce').doc(produce.pid), {
+          'stock': currentStock + 1,
+          'status': currentStock + 1 > 0 ? 'available' : 'out of stock',
+        });
 
-    await FirebaseFirestore.instance.runTransaction((transaction) async {
-      //refetch to get latest data
-      final produceDoc = await transaction.get(produceRef.doc(produce.pid));
-      print('Attempting to fetch produce with pid: ${produce.pid}');
-
-      if (!produceDoc.exists) {
-        throw Exception('Produce not found');
-      }
-
-      print('Document data: ${produceDoc.data()}');
-
-      final currentStock = produceDoc['stock'];
-      final currentStatus = produceDoc['status'];
-
-      if(!cart.value.quantity.containsKey(produce.pid)) {
-        throw Exception('Produce not found in cart');
-      }
-
-      //get quantity of produce in cart based on pid
-      var cartQuantity = cart.value.quantity[produce.pid]!;
-
-      //remove produce from cart
-      cart.value.produces.removeWhere((prod) => prod.pid == produce.pid);
-      cart.value.quantity.remove(produce.pid);
-
-      //add back to stock
-      int updatedStock = currentStock + cartQuantity;
-      String updatedStatus = updatedStock == 0 ? 'out of stock' : currentStatus;
-
-      transaction.update(produceRef.doc(produce.pid), {
-        'stock': updatedStock,
-        'status': updatedStatus,
-      });
-
-      WidgetsBinding.instance.addPostFrameCallback((_){
-        productController.stock.value = updatedStock;
+        cart.value.calculateTotalAmount();
+        await _firestore.collection('carts').doc(cart.value.cid).update(cart.value.toJson());
       });
 
       cart.refresh();
-      await FirebaseFirestore.instance.collection('carts').doc(cart.value.cid).update({
-        'timestamp': cart.value.timestamp,
-        'produces': cart.value.produces.map((e) => e.toJson()).toList(),
-        'quantity': cart.value.quantity,
-        'discount': cart.value.discount,
-        'status': cart.value.status,
-      });
-
-
-    });
-
-    Get.snackbar('Success', 'Produce removed from cart');
-  } catch(e){
-    print('Error removing produce from cart: $e');
-  }
-}
-
-Future<void> removeOneProduceFromCart(LocalProduce produce) async {
-  try{
-    if (produce.pid == null || produce.pid!.isEmpty){
-      return;
+      Get.snackbar('Success', 'Product quantity updated');
+    } catch (e) {
+      print('Error updating product quantity: $e');
+      Get.snackbar('Error', 'Failed to update product quantity');
     }
-    print('Removing produce with pid: ${produce.pid} from cart');
+  }
 
-    await FirebaseFirestore.instance.runTransaction((transaction) async {
-      //refetch to get latest data
-      final produceDoc = await transaction.get(produceRef.doc(produce.pid));
-      print('Attempting to fetch produce with pid: ${produce.pid}');
+  Future<void> removeProduceFromCart(LocalProduce produce) async {
+    try {
+      if (produce.pid.isEmpty) return;
 
-      if (!produceDoc.exists) {
-        throw Exception('Produce not found');
-      }
+      await _firestore.runTransaction((transaction) async {
+        final produceDoc = await transaction.get(_firestore.collection('localProduce').doc(produce.pid));
+        
+        if (!produceDoc.exists) {
+          throw Exception('Product not found');
+        }
 
-      print('Document data: ${produceDoc.data()}');
+        if (!cart.value.quantity.containsKey(produce.pid)) {
+          throw Exception('Product not found in cart');
+        }
 
-      final currentStock = produceDoc['stock'];
-      final currentStatus = produceDoc['status'];
+        var cartQuantity = cart.value.quantity[produce.pid]!;
+        int currentStock = produceDoc.data()!['stock'] as int;
 
-      if(!cart.value.quantity.containsKey(produce.pid)) {
-        throw Exception('Produce not found in cart');
-      }
-
-      //get quantity of produce in cart based on pid
-      var cartQuantity = cart.value.quantity[produce.pid]!;
-
-      if(cartQuantity == 1) {
-        //remove produce from cart
         cart.value.produces.removeWhere((prod) => prod.pid == produce.pid);
         cart.value.quantity.remove(produce.pid);
-      } else {
-        cart.value.quantity[produce.pid] = cartQuantity - 1;
-      }
 
-      //add back to stock
-      int updatedStock = currentStock + cartQuantity;
-      String updatedStatus = updatedStock == 0 ? 'out of stock' : currentStatus;
+        int updatedStock = currentStock + cartQuantity;
+        transaction.update(_firestore.collection('localProduce').doc(produce.pid), {
+          'stock': updatedStock,
+          'status': updatedStock > 0 ? 'available' : 'out of stock',
+        });
 
-      transaction.update(produceRef.doc(produce.pid), {
-        'stock': updatedStock,
-        'status': updatedStatus,
-      });
-
-      WidgetsBinding.instance.addPostFrameCallback((_){
-        productController.stock.value = updatedStock;
+        cart.value.calculateTotalAmount();
+        await _firestore.collection('carts').doc(cart.value.cid).update(cart.value.toJson());
       });
 
       cart.refresh();
-      await FirebaseFirestore.instance.collection('carts').doc(cart.value.cid).update({
-        'timestamp': cart.value.timestamp,
-        'produces': cart.value.produces.map((e) => e.toJson()).toList(),
-        'quantity': cart.value.quantity,
-        'discount': cart.value.discount,
-        'status': cart.value.status,
+      Get.snackbar('Success', 'Product removed from cart');
+    } catch(e) {
+      print('Error removing produce from cart: $e');
+      Get.snackbar('Error', 'Failed to remove product from cart');
+    }
+  }
+
+  Future<void> updateCartAddress(String address) async {
+    try {
+      if (address.isEmpty) {
+        throw Exception('Address cannot be empty');
+      }
+
+      // Update local cart
+      cart.update((val) {
+        val?.shippingAddress = address;
       });
 
+      // Update Firestore
+      await _firestore.collection('carts').doc(cart.value.cid).update({
+        'shippingAddress': address,
+      });
 
-    });
-
-    Get.snackbar('Success', 'Produce removed from cart');
-  } catch(e){
-    print('Error removing produce from cart: $e');
+      cart.refresh();
+      Get.snackbar('Success', 'Shipping address updated');
+    } catch (e) {
+      print('Error updating cart address: $e');
+      Get.snackbar('Error', 'Failed to update shipping address');
+      rethrow;
+    }
   }
-}
 
-  double calculatePriceForEachProduce(LocalProduce produce){
-    int quantityForEachProduce = cart.value.quantity[produce.pid] ?? 0;
-    return produce.price * quantityForEachProduce;
+  Future<void> processCheckout() async {
+    try {
+      if (cart.value.produces.isEmpty) {
+        throw Exception('Cart is empty');
+      }
+
+      // Fetch the cart document directly from Firestore
+      final cartDoc = await _firestore.collection('carts').doc(cart.value.cid).get();
+      if (!cartDoc.exists) {
+        throw Exception('Cart not found');
+      }
+
+      final cartData = cartDoc.data()!;
+      final shippingAddress = cartData['shippingAddress'];
+      if (shippingAddress == null || shippingAddress.toString().trim().isEmpty) {
+        throw Exception('Please add a shipping address');
+      }
+
+      // Start a transaction
+      await _firestore.runTransaction((transaction) async {
+        // Create order document reference
+        DocumentReference orderRef = _firestore.collection('orders').doc();
+
+        // Verify stock availability and organize products
+        List<Map<String, dynamic>> verifiedProducts = [];
+        Set<String> sellerIds = {};
+
+        for (var produce in cart.value.produces) {
+          if (produce.userRef == null) continue;
+
+          // Get latest product data
+          DocumentSnapshot productDoc = await transaction.get(
+            _firestore.collection('localProduce').doc(produce.pid)
+          );
+
+          if (!productDoc.exists) {
+            throw Exception('Product ${produce.productName} no longer exists');
+          }
+
+          Map<String, dynamic> productData = productDoc.data() as Map<String, dynamic>;
+          int currentStock = productData['stock'] as int;
+          int requestedQuantity = cart.value.quantity[produce.pid] ?? 0;
+
+          if (currentStock < requestedQuantity) {
+            throw Exception('Insufficient stock for ${produce.productName}');
+          }
+
+          String sellerId = produce.userRef!.id;
+          sellerIds.add(sellerId);
+
+          // Add verified product data
+          Map<String, dynamic> verifiedProduct = {
+            ...productData,
+            'pid': produce.pid,
+            'sellerId': sellerId,
+            'quantity': requestedQuantity,
+            'userRef': produce.userRef,
+            'subtotal': produce.price * requestedQuantity
+          };
+          verifiedProducts.add(verifiedProduct);
+
+          // Update product stock
+          transaction.update(
+            _firestore.collection('localProduce').doc(produce.pid),
+            {
+              'stock': currentStock - requestedQuantity,
+              'status': (currentStock - requestedQuantity) > 0 ? 'available' : 'out of stock'
+            }
+          );
+        }
+
+        // Create order data
+        Map<String, dynamic> orderData = {
+          'orderId': orderRef.id,
+          'userId': cart.value.cid,
+          'products': verifiedProducts,
+          'quantities': cart.value.quantity,
+          'totalAmount': cart.value.totalAmount,
+          'shippingAddress': shippingAddress,
+          'status': 'pending',
+          'paymentMethod': cart.value.paymentMethod,
+          'orderDate': FieldValue.serverTimestamp(),
+          'lastUpdated': FieldValue.serverTimestamp(),
+          'sellerIds': sellerIds.toList(), // Store seller IDs in a simple list
+        };
+
+        // Set order document
+        transaction.set(orderRef, orderData);
+
+        // Delete existing cart
+        transaction.delete(_firestore.collection('carts').doc(cart.value.cid));
+      });
+
+      // Reset local cart after successful transaction
+      await resetExpiredCart(cart.value.cid);
+      Get.snackbar('Success', 'Order placed successfully');
+      Get.offAllNamed('/orders');
+    } catch (e) {
+      print('Error processing checkout: $e');
+      Get.snackbar(
+        'Error',
+        e.toString(),
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: Duration(seconds: 3),
+      );
+    }
+  }
+
+  Future<void> resetExpiredCart(String uid) async {
+    Cart newCart = Cart(
+      cid: uid,
+      produces: [],
+      quantity: {},
+      discount: 0.0,
+      status: 'active',
+      timestamp: DateTime.now(),
+    );
+    await _firestore.collection('carts').doc(uid).set(newCart.toJson());
+    cart.value = newCart;
   }
 
   double calculateTotalPrice() {
-    double totalPrice = 0;
-    cart.value.produces.forEach((produce) {
-      totalPrice += calculatePriceForEachProduce(produce);
-    });
-    return totalPrice;
+    cart.value.calculateTotalAmount();
+    return cart.value.totalAmount;
   }
 
-  // Future<void> createAddress() async{
-  //    try {
-  //     User? currentUser = FirebaseAuth.instance.currentUser;
-
-  //     if (currentUser == null) {
-  //       Get.snackbar('Error', 'No user is currently logged in');
-  //       return;
-  //     }
-
-  //     String uid = currentUser.uid; 
-  //     // Check if the cart already exists for the user
-  //     final cartDoc = await cartRef.doc(uid).get();
-
-  //     if (cartDoc.exists) {
-  //       cart.value = Cart.fromJson(cartDoc.data()!);
-  //     } else {
-  //       Cart newCart = Cart(
-  //         cid: uid, 
-  //         produces: [], 
-  //         quantity: {}, 
-  //         discount: 0.0,
-  //         status: 'active', 
-  //         timestamp: DateTime.now(), 
-  //       );
-      
-  //       await cartRef.doc(uid).set(newCart.toJson());
-  //       cart.value = newCart;
-  //     }
-  //     } catch(e) {
-  //       print('Error initializing cart: $e');
-  //       Get.snackbar('Error', 'Failed to initialize cart');
-  //     }
-  // }
-
+  @override
+  void onClose() {
+    cart.value.clear();
+    super.onClose();
+  }
 }

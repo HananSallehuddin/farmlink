@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:farmlink/controllers/LoginController.dart';
 import 'package:get/get.dart';
@@ -13,9 +12,13 @@ class LoginUI extends StatelessWidget {
     final loginController = Get.find<LoginController>();
     final _formKey = GlobalKey<FormState>(); // Form key for validation
     String? _email, _password; // Store email and password
-
+    
     // Reactive boolean for toggling password visibility
     final RxBool showPassword = false.obs;
+
+    // Reset loading state when page is initialized
+    loginController.isLoading.value = false;
+    loginController.errorMessage.value = '';
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -29,7 +32,7 @@ class LoginUI extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 60.0),
                 child: Center(
                   child: Image.asset(
-                    'assets/farmlink logo wo quotes.png', // Replace with your logo path
+                    'assets/farmlink logo wo quotes.png',
                     width: 150,
                     height: 150,
                   ),
@@ -39,7 +42,7 @@ class LoginUI extends StatelessWidget {
               // Greeting text
               const SizedBox(height: 24),
               const Text(
-                'Log In',
+                'Welcome Back',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -47,7 +50,7 @@ class LoginUI extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               const Text(
-                'Hello again, you\'ve been missed!',
+                'Login to continue',
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.grey,
@@ -65,20 +68,22 @@ class LoginUI extends StatelessWidget {
                     ),
                   );
                 } else {
-                  return const SizedBox.shrink(); // Empty if no error message
+                  return const SizedBox.shrink();
                 }
               }),
 
-              // Email input field
+              // Login Form
               const SizedBox(height: 32),
               Form(
                 key: _formKey,
                 child: Column(
                   children: [
+                    // Email input field
                     TextFormField(
                       decoration: InputDecoration(
                         labelText: 'Email',
-                        hintText: 'Enter Email',
+                        hintText: 'Enter your email',
+                        prefixIcon: const Icon(Icons.email),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.0),
                         ),
@@ -88,21 +93,25 @@ class LoginUI extends StatelessWidget {
                         if (value == null || value.isEmpty) {
                           return 'Please enter your email';
                         }
+                        if (!GetUtils.isEmail(value)) {
+                          return 'Please enter a valid email';
+                        }
                         return null;
                       },
                       onSaved: (value) {
-                        _email = value; // Save email input value
+                        _email = value;
                       },
                     ),
 
                     const SizedBox(height: 16),
 
-                    // Password input field with "show password" functionality
+                    // Password input field with visibility toggle
                     Obx(
                       () => TextFormField(
                         decoration: InputDecoration(
                           labelText: 'Password',
-                          hintText: 'Password',
+                          hintText: 'Enter your password',
+                          prefixIcon: const Icon(Icons.lock),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12.0),
                           ),
@@ -125,89 +134,88 @@ class LoginUI extends StatelessWidget {
                           return null;
                         },
                         onSaved: (value) {
-                          _password = value; // Save password input value
+                          _password = value;
                         },
                       ),
                     ),
-                  ],
-                ),
-              ),
 
-              // Forgot Password link
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                    // Navigate to forgot password screen
-                  },
-                  child: const Text(
-                    'Forgot Password?',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ),
-              ),
-
-              // Login button
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,  // Set the width to infinity
-                child: ElevatedButton(
-                  onPressed: () async {
-                    if (_formKey.currentState?.validate() ?? false) {
-                      _formKey.currentState?.save(); // Save form data
-
-                      // Call login controller login method
-                      await loginController.loginUser(
-                        email: _email!,
-                        password: _password!,
-                      );
-
-                      // After login, check if login was successful
-                      if (loginController.isLoggedIn.value) {
-                        String? role = await loginController.getUserRole();
-                        if (role == 'Seller') {
-                          Get.offAllNamed('/homepageSeller');
-                          print('currentUser: ${FirebaseAuth.instance.currentUser!.uid} (seller)');
-                        } else if (role == 'Customer') {
-                          Get.offAllNamed('/homepageCustomer');
-                          print('currentUser: ${FirebaseAuth.instance.currentUser!.uid} (customer)');
-                        }
-                      }
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    backgroundColor: Styles.primaryColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'LOG IN',
-                    style: TextStyle(fontSize: 16, color: Colors.white),
-                  ),
-                ),
-              ),
-
-              // Register link
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('New to FarmLink? '),
-                  GestureDetector(
-                    onTap: () {
-                      Get.toNamed('/register'); // Navigate to registration screen
-                    },
-                    child: const Text(
-                      'Sign Up',
-                      style: TextStyle(
-                        color: Styles.primaryColor,
-                        fontWeight: FontWeight.bold,
+                    // Forgot Password link
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {
+                          // TODO: Implement forgot password functionality
+                          Get.snackbar(
+                            'Coming Soon',
+                            'Password reset functionality will be available soon.',
+                            snackPosition: SnackPosition.BOTTOM,
+                          );
+                        },
+                        child: const Text(
+                          'Forgot Password?',
+                          style: TextStyle(color: Colors.grey),
+                        ),
                       ),
                     ),
-                  ),
-                ],
+
+                    // Login button
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: Obx(() => ElevatedButton(
+                        onPressed: loginController.isLoading.value
+                            ? null
+                            : () async {
+                                if (_formKey.currentState?.validate() ?? false) {
+                                  _formKey.currentState?.save();
+                                  await loginController.loginUser(
+                                    email: _email!,
+                                    password: _password!,
+                                  );
+                                }
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Styles.primaryColor,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: loginController.isLoading.value
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : const Text(
+                                'LOGIN',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                      )),
+                    ),
+
+                    // Register link
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('New to FarmLink? '),
+                        GestureDetector(
+                          onTap: () {
+                            Get.toNamed('/register');
+                          },
+                          child: Text(
+                            'Sign Up',
+                            style: TextStyle(
+                              color: Styles.primaryColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
