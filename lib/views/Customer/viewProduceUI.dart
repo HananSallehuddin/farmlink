@@ -3,6 +3,7 @@ import 'package:farmlink/controllers/CartController.dart';
 import 'package:farmlink/controllers/ChatController.dart';
 import 'package:farmlink/controllers/ProductController.dart';
 import 'package:farmlink/controllers/LoginController.dart';
+import 'package:farmlink/controllers/RatingController.dart';
 import 'package:farmlink/models/LocalProduce.dart';
 import 'package:farmlink/styles.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,7 @@ class _viewProduceUIState extends State<viewProduceUI> with SingleTickerProvider
   final ProductController productController = Get.find<ProductController>();
   final CartController cartController = Get.find<CartController>();
   final ChatController chatController = Get.find<ChatController>();
+  final RatingController ratingController = Get.find<RatingController>();
   final LoginController loginController = Get.find<LoginController>();
   final String? pid = Get.parameters['pid'];
   final RxInt currentImageIndex = 0.obs;
@@ -44,6 +46,8 @@ class _viewProduceUIState extends State<viewProduceUI> with SingleTickerProvider
 
       // Load product with real-time updates
       await _loadProduct();
+
+      ratingController.fetchProduceRating(pid!);
       
       // Set up real-time listener for product updates
       _setupProductListener();
@@ -63,6 +67,7 @@ class _viewProduceUIState extends State<viewProduceUI> with SingleTickerProvider
       print('Error loading product: $e');
     }
   }
+
 
   void _setupProductListener() {
     if (pid == null) return;
@@ -257,23 +262,35 @@ class _viewProduceUIState extends State<viewProduceUI> with SingleTickerProvider
               ),
               
               GestureDetector(
-                onTap: () {
-                   Get.toNamed('/ratingList', parameters: {'pid': produce.pid.toString()});
-                 },
-                 child: const Row(
-                 children: [
-                 //Icon(Icons.star, color: Colors.amber, size: 20),
+              onTap: () {
+                Get.toNamed('/ratingList', parameters: {'pid': produce.pid.toString()});
+              },
+            child: Row(
+              children: [
+                Obx(() {
+                  return Text(
+                    ratingController.averageRating.value == 0.0
+                        ? 'Not rated yet'  // Display if rating is 0.0
+                        : '${ratingController.averageRating.value.toStringAsFixed(1)}',  // Display the average rating otherwise
+                    style: TextStyle(fontSize: 16),
+                  );
+                }),
                 SizedBox(width: 4),
-                 Text(
-                    'View Ratings',
-                  style: TextStyle(fontSize: 16),
-                 ),
+                // Show star icon only if there is a rating (not 0.0)
+                if (ratingController.averageRating.value > 0.0)
+                  Icon(Icons.star, color: Colors.amber, size: 20),
+                SizedBox(width: 4),
+                Icon(
+                  Icons.arrow_forward,
+                  size: 16,
+                  color: Colors.black,
+                ),
               ],
             ),
-          ),
-            ],
-          ),
-          SizedBox(height: 8),
+            ),
+          ],
+        ),
+        SizedBox(height: 8),
           Text(
             'RM${produce.price.toStringAsFixed(2)}',
             style: TextStyle(

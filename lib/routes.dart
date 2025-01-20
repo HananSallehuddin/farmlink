@@ -57,7 +57,7 @@ class Routes {
   static const String ratingList = '/ratingList';
   static const String ratingListSeller = '/ratingListSeller';
   static const String rateProduce = '/rateProduce';
-  static const String rateSeller = '/rateSeller';
+  // static const String rateSeller = '/rateSeller';
 
   // Common transition settings for smoother navigation
   static const _transitionDuration = Duration(milliseconds: 150);
@@ -266,17 +266,17 @@ class Routes {
         Get.put(role, tag: 'currentRole', permanent: true);
       }),
     ),
-    GetPage(
-      name: rateSeller,
-      page: () => rateSellerFormUI(),
-      middlewares: [AuthMiddleware()],
-      transition: _defaultTransition,
-      transitionDuration: _transitionDuration,
-      binding: BindingsBuilder(() {
-        final role = userController.currentUser.value?.role ?? '';
-        Get.put(role, tag: 'currentRole', permanent: true);
-      }),
-    ),
+    // GetPage(
+    //   name: rateSeller,
+    //   page: () => rateSellerFormUI(),
+    //   middlewares: [AuthMiddleware()],
+    //   transition: _defaultTransition,
+    //   transitionDuration: _transitionDuration,
+    //   binding: BindingsBuilder(() {
+    //     final role = userController.currentUser.value?.role ?? '';
+    //     Get.put(role, tag: 'currentRole', permanent: true);
+    //   }),
+    // ),
 
   ];
 

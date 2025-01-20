@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:farmlink/controllers/LoginController.dart';
 import 'package:farmlink/models/LocalProduce.dart';
+import 'package:farmlink/models/UserModel.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:get/get.dart';
@@ -383,6 +384,21 @@ class ProductController extends GetxController {
           produce.productName.toLowerCase().contains(query.toLowerCase())).toList();
   }
 }
+  Future<String> fetchSellerName(DocumentReference userRef) async {
+  try {
+    var userDoc = await userRef.get();  // Get the user document using the userRef
+    if (userDoc.exists) {
+      // Assuming the username is stored in the 'username' field
+      return userDoc['username'] ?? 'Seller Not Found';  // Replace 'username' with the actual field name
+    } else {
+      return 'Seller Not Found';  // In case the document doesn't exist
+    }
+  } catch (e) {
+    return 'Error fetching seller';
+  }
+}
+
+
 
   @override
   void onClose() {

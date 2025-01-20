@@ -255,6 +255,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:farmlink/controllers/UserController.dart';
 import 'package:farmlink/models/UserModel.dart';
+import 'package:farmlink/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -320,14 +321,17 @@ class addressFormUI extends StatelessWidget {
                 validator: (value) =>
                     value == null || value.isEmpty ? 'Please enter city' : null,
                 ),
-                SizedBox(height: 16),
-                ElevatedButton(  
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      _formKey.currentState!.save();
+                SizedBox(height: 24),
+                SizedBox(
+                width: double.infinity,
+                child: Obx(()=> ElevatedButton(
+                  onPressed: userController.isLoading.value
+                    ? null
+                    : () async {
+                      if (_formKey.currentState!.validate()){
+                        _formKey.currentState!.save();
                       
-                      try { 
-                        DocumentReference newAddressRef = FirebaseFirestore.instance.collection('addresses').doc();
+                    DocumentReference newAddressRef = FirebaseFirestore.instance.collection('addresses').doc();
                         Address newAddress = Address( 
                         address: _address!,
                         zipCode: _zipCode!,
@@ -337,14 +341,27 @@ class addressFormUI extends StatelessWidget {
                       );
                       await userController.addAddress(newAddress);
                       Get.back();
-                      } catch (e) {
-                        print('Error adding address: $e');
-                      }
-                    
-                    } 
-                  },
-                  child: Text('Save address'),
-                ),
+                    }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Styles.primaryColor,
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: userController.isLoading.value
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                        'Save Address',
+                        style:TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                  )),
+              ),
             ],
           )
         )

@@ -1,3 +1,4 @@
+import 'package:farmlink/controllers/RatingController.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:farmlink/controllers/ProductController.dart';
@@ -14,6 +15,7 @@ class HomepageCustomer extends StatefulWidget {
 class _HomepageCustomerState extends State<HomepageCustomer> with AutomaticKeepAliveClientMixin {
   final ProductController productController = Get.find<ProductController>();
   final CartController cartController = Get.find<CartController>();
+  final RatingController ratingController = Get.find<RatingController>();
   final searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final RxString selectedCategory = 'All'.obs;
@@ -217,7 +219,7 @@ class _HomepageCustomerState extends State<HomepageCustomer> with AutomaticKeepA
         padding: EdgeInsets.all(16),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          childAspectRatio: 0.75,
+          childAspectRatio: 0.65,
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
         ),

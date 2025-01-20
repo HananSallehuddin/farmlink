@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:farmlink/controllers/RatingController.dart';
 import 'package:farmlink/models/Rating.dart';
+import 'package:farmlink/styles.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -8,7 +9,7 @@ import 'package:get/get.dart';
 class rateProduceFormUI extends StatelessWidget {
   final _formKey = GlobalKey<FormState>();
   final ratingController = Get.find<RatingController>();
-  int? score;
+  final RxInt score = 0.obs;
   String? review;
 
   @override
@@ -24,7 +25,7 @@ class rateProduceFormUI extends StatelessWidget {
             Get.back();
           },
         ),
-        title: Text("Add rating for this produce"),
+        title: Text("Add rating"),
         centerTitle: true,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -37,30 +38,30 @@ class rateProduceFormUI extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              _buildTextFormField(
-                labelText: 'Score',
-                hintText: 'Enter score for the produce',
-                onSaved: (value) => score = int.tryParse(value!),
-                keyboardType: TextInputType.number,
-              ),
+              _buildStarRating(),
               SizedBox(height: 16),
               _buildTextFormField(
                 labelText: 'Review',
-                hintText: 'Leave review for the produce',
+                hintText: 'Leave your review to help us improve',
                 onSaved: (value) => review = value,
               ),
-              SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
-                    _formKey.currentState!.save();
+              SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: Obx(()=> ElevatedButton(
+                  onPressed: ratingController.isLoading.value
+                    ? null
+                    : () async {
+                      if (_formKey.currentState!.validate()){
+                        _formKey.currentState!.save();
+                      
                     String rid = FirebaseFirestore.instance.collection('ratings').doc().id;
                     DocumentSnapshot produceSnapshot = await FirebaseFirestore.instance.collection('localProduce').doc(pid).get();
                     DocumentReference sellerRef = produceSnapshot['userRef'];  // The sellerRef is stored in the userRef field
 
                     Rating newRating = Rating( 
                       rid: rid,
-                      score: score!,
+                      score: score.value,
                       review: review!,
                       customerRef: FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid),
                       dateRated: DateTime.now(),
@@ -69,18 +70,54 @@ class rateProduceFormUI extends StatelessWidget {
                       type: 'produce',
                     );
 
-                    // Use the pid to add the rating
                     await ratingController.addProduceRating(pid!, newRating);
-                    Get.back(); // Go back after saving the rating
-                  }
-                },
-                child: Text('Save rating'),
+                    Get.back(); 
+                    }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Styles.primaryColor,
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: ratingController.isLoading.value
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                        'Save Rating',
+                        style:TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                  )),
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildStarRating(){
+    return Obx(() {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(5, (index){
+          return IconButton(
+            icon: Icon(  
+              index < score.value ? Icons.star : Icons.star_border,
+              color: Colors.amber,
+              size: 40,
+            ),
+            onPressed: (){
+              score.value = index + 1;
+            },
+            );
+        }),
+      );
+    });
   }
 
   Widget _buildTextFormField({

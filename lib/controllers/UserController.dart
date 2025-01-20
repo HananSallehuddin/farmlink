@@ -130,6 +130,7 @@ class UserController extends GetxController {
 
   Future<void> addAddress(Address newAddress) async {
     try {
+      isLoading.value = true;
       User? user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         String currentUID = user.uid;
@@ -151,6 +152,8 @@ class UserController extends GetxController {
       }
     } catch (e) {
       print('Error adding address: $e');
+    } finally {
+      isLoading.value = false;
     }
   }
 

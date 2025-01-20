@@ -2,6 +2,7 @@ import 'package:farmlink/controllers/CartController.dart';
 import 'package:farmlink/controllers/ChatController.dart';
 import 'package:farmlink/controllers/LoginController.dart';
 import 'package:farmlink/controllers/ProductController.dart';
+import 'package:farmlink/controllers/RatingController.dart';
 import 'package:farmlink/controllers/UserController.dart';
 import 'package:farmlink/routes.dart';
 import 'package:farmlink/services/NotificationService.dart';
@@ -37,6 +38,7 @@ Future<void> main() async {
     Get.put(ProductController(), permanent: true);
     Get.put(CartController(), permanent: true);
     Get.put(ChatController(), permanent: true);
+    Get.put(RatingController(), permanent: true);
     
     // Initialize services
     final notificationService = NotificationService();
