@@ -12,32 +12,29 @@ class analyticUI extends StatelessWidget {
   Widget build(BuildContext context) {
     // Data is already fetched onInit of the controller
     return Scaffold(
-      appBar: AppBar(title: Text('Sales Analytics')),
-      body: SingleChildScrollView(
-        child: Center(
-          child: Obx(() {
-            if (analyticController.monthlySales.isEmpty) {
-              return Text(
-                'No sales data available',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              );
-            } else {
-              return Column(
-                children: [
-                  SizedBox(height: 20),
-                  _buildBarChart(),
-                  SizedBox(height: 20),
-                  _buildTotalSalesText(),
-                  SizedBox(height: 20),
-                  _buildMostSoldProduceText(),
-                ],
-              );
-            }
-          }),
+        appBar: AppBar(title: Text('Sales Analytics')),
+        body: SingleChildScrollView(
+          child: Center(
+            child: Obx(() {
+              if (analyticController.monthlySales.isEmpty) {
+                return CircularProgressIndicator();  // Show loading until data is fetched
+              } else {
+                return Column(
+                  children: [
+                    SizedBox(height: 20),
+                    _buildBarChart(),
+                    SizedBox(height: 20),
+                    _buildTotalSalesText(),
+                    SizedBox(height: 20),
+                    _buildMostSoldProduceText(),
+                  ],
+                );
+              }
+            }),
+          ),
         ),
-      ),
-      bottomNavigationBar: bottomNavigationBarSeller(currentRoute: '/analytic'),
-    );
+        bottomNavigationBar: bottomNavigationBarSeller(currentRoute: '/analytic'),
+      );
   }
 
   Widget _buildBarChart() {

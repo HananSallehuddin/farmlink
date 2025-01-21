@@ -145,6 +145,18 @@ class UserController extends GetxController {
           });
           addresses.add(newAddress);
 
+          if(selectedAddress.value == null) {
+            selectedAddress.value = newAddress;
+          }
+
+          final cartDoc = await _firestore.collection('carts').doc(currentUID).get();
+        if (cartDoc.exists) {
+          await _firestore.collection('carts').doc(currentUID).update({
+            'shippingAddress': selectedAddress.value?.toJson(),
+          });
+        }
+        print('Selected Address: ${selectedAddress.value}');
+
           print("Address added successfully.");
         } else {
           throw Exception("User document not found in Firestore.");
@@ -312,9 +324,10 @@ class UserController extends GetxController {
             if (addresses.isNotEmpty) {
               selectedAddress.value = addresses.first;
               print('First address reference: ${selectedAddress.value?.reference}');
+              print('Selected Address: ${selectedAddress.value}');
             }
           } else {
-            print('No "addresses" field found in the user document');
+            print('No addresses available');
           }
         } else {
           print('User document does not exist');

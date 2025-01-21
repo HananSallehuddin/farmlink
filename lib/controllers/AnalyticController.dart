@@ -1,13 +1,11 @@
-import 'package:farmlink/controllers/CartController.dart';
-import 'package:farmlink/models/Cart.dart';
+import 'package:farmlink/models/OrderModel.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:farmlink/models/LocalProduce.dart';
 
 class AnalyticController extends GetxController {
   var totalSales = 0.0.obs;
-  final cartController = Get.find<CartController>();
   var monthlySales = <String, double>{}.obs;
   var mostSoldProduce = ''.obs;
 
@@ -17,56 +15,70 @@ class AnalyticController extends GetxController {
     fetchSalesData();
   }
 
-  Future<void> fetchSalesData() async {
-    try {
-      // Assuming we can access sales data from the cart or related transactions
-      // In the absence of orders, we'll fetch relevant data from cart transactions
+Future<void> fetchSalesData() async {
+  try {
+    Map<String, double> monthlySalesData = {
+      'Jan': 0.0, 'Feb': 0.0, 'Mar': 0.0, 'Apr': 0.0,
+      'May': 0.0, 'Jun': 0.0, 'Jul': 0.0, 'Aug': 0.0,
+      'Sep': 0.0, 'Oct': 0.0, 'Nov': 0.0, 'Dec': 0.0,
+    };
 
-      Map<String, double> monthlySalesData = {
-        'Jan': 0.0, 'Feb': 0.0, 'Mar': 0.0, 'Apr': 0.0,
-        'May': 0.0, 'Jun': 0.0, 'Jul': 0.0, 'Aug': 0.0,
-        'Sep': 0.0, 'Oct': 0.0, 'Nov': 0.0, 'Dec': 0.0,
-      };
-      Map<String, int> produceCount = {};
+    Map<String, int> produceCount = {};
 
-      // Fetch and process cart data (assuming cart transactions or completed carts)
-      var carts = await _fetchCartsForSeller(); // Method to fetch carts related to the seller
+    // Fetch orders for the current seller
+    String sellerId = FirebaseAuth.instance.currentUser!.uid;
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('orders')
+        .where('sellerIds', arrayContains: sellerId)
+        .get();
 
-      for (var cart in carts) {
-        DateTime date = cart.timestamp;
-        String month = DateFormat.MMM().format(date);
-        double cartTotal = cart.totalAmount;
+    // Process each order
+    for (var doc in querySnapshot.docs) {
+      var order = OrderModel.fromJson(doc.data() as Map<String, dynamic>);
+      DateTime date = order.orderDate;
+      String month = DateFormat.MMM().format(date);
+      double orderTotal = order.totalAmount;
 
-        monthlySalesData[month] = (monthlySalesData[month] ?? 0) + cartTotal;
+      // Update monthly sales data
+      monthlySalesData[month] = (monthlySalesData[month] ?? 0) + orderTotal;
 
-        // Calculate produce count from cart items
-        cart.produces.forEach((produce) {
-          String produceName = produce.productName;
-          int quantity = cart.quantity[produce.pid] ?? 0;
+      // Log the products to check for any unexpected data type
+      print('Order Products: ${order.products.runtimeType}');  // Type of products
+      print('Order Products Data: ${order.products}');  // Raw product data
 
-          produceCount[produceName] = (produceCount[produceName] ?? 0) + quantity;
-        });
+      // Iterate over the products and catch potential type issues
+      for (var product in order.products) {
+        try {
+          if (product is Map<String, dynamic>) {
+            String productName = product['productName'];  // Ensure this is a String
+            int quantity = product['quantity'];  // Ensure quantity is an int
+            print('Processed Produce Name: $productName');
+            print('Quantity: $quantity');
+
+            // Update the produce count safely
+            produceCount[productName] = (produceCount[productName] ?? 0) + quantity;
+          } else {
+            print('Error: Product is not a Map<String, dynamic>: $product');
+          }
+        } catch (e) {
+          print('Error processing product: $e');
+        }
       }
-
-      monthlySalesData.updateAll((key, value) => value.isFinite ? value : 0.0);
-      monthlySales.assignAll(monthlySalesData);
-
-      // Determine the most sold produce
-      mostSoldProduce.value = produceCount.entries.isNotEmpty
-          ? produceCount.entries.reduce((a, b) => a.value > b.value ? a : b).key
-          : 'No produce sold';
-
-      print('Monthly sales data: $monthlySalesData');
-      print('Most sold produce: $mostSoldProduce');
-    } catch (e) {
-      print('Error fetching sales data: $e');
     }
-  }
 
-  Future<List<Cart>> _fetchCartsForSeller() async {
-    // Logic to fetch carts related to the seller
-    // This is a placeholder function; actual implementation will depend on your database schema
-    List<Cart> carts = []; // Fetch carts from Firestore or other database
-    return carts;
+    // Update monthly sales data
+    monthlySalesData.updateAll((key, value) => value.isFinite ? value : 0.0);
+    monthlySales.assignAll(monthlySalesData);
+
+    // Determine the most sold produce
+    mostSoldProduce.value = produceCount.isNotEmpty
+        ? produceCount.entries.reduce((a, b) => a.value > b.value ? a : b).key
+        : 'No produce sold';
+
+    print('Monthly sales data: $monthlySalesData');
+    print('Most sold produce: $mostSoldProduce');
+  } catch (e) {
+    print('Error fetching sales data: $e');
   }
+}
 }

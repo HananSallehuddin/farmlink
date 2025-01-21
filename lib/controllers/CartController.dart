@@ -258,10 +258,15 @@ class CartController extends GetxController {
       }
 
       final cartData = cartDoc.data()!;
+      print(cartData);
       final shippingAddress = cartData['shippingAddress'];
-      if (shippingAddress == null || shippingAddress.toString().trim().isEmpty) {
-        throw Exception('Please add a shipping address');
-      }
+      // if (shippingAddress == null || shippingAddress.toString().trim().isEmpty) {
+      //   throw Exception('Please add a shipping address');
+      // }
+
+      if (shippingAddress == null || shippingAddress['addressLine']?.trim().isEmpty == true) {
+  throw Exception('Please add a shipping address');
+}
 
       // Start a transaction
       await _firestore.runTransaction((transaction) async {

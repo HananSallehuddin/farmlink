@@ -23,7 +23,7 @@ class _checkoutUIState extends State<checkoutUI> with AutomaticKeepAliveClientMi
   @override
   void initState() {
     super.initState();
-    //userController.fetchAddresses();
+    userController.fetchAddresses();
   }
 
   Future<void> _handlePlaceOrder() async {
@@ -41,6 +41,7 @@ class _checkoutUIState extends State<checkoutUI> with AutomaticKeepAliveClientMi
     try {
       isProcessing.value = true;
       await cartController.processCheckout();
+      print('Address at checkout: ${userController.selectedAddress.value?.address}');
       Get.offAllNamed('/orders');
     } catch (e) {
       Get.snackbar(
@@ -72,17 +73,20 @@ class _checkoutUIState extends State<checkoutUI> with AutomaticKeepAliveClientMi
           if (cartController.cart.value.produces.isEmpty) {
             return _buildEmptyCart();
           }
-          var selectedAddress = userController.selectedAddress.value;
-          if (selectedAddress == null) {
-          return Center(
-            child: ElevatedButton(
-              onPressed: () {
-                Get.toNamed('addressList');
-              },
-              child: const Text('Add new address'),
-            ),
-          );
-        }
+          final selectedAddress = userController.selectedAddress.value;
+
+          
+        //   var selectedAddress = userController.selectedAddress.value;
+        //   if (selectedAddress == null) {
+        //   return Center(
+        //     child: ElevatedButton(
+        //       onPressed: () {
+        //         Get.toNamed('addressList');
+        //       },
+        //       child: const Text('Add new address'),
+        //     ),
+        //   );
+        // }
 
           return SingleChildScrollView(
             controller: _scrollController,
@@ -121,7 +125,7 @@ class _checkoutUIState extends State<checkoutUI> with AutomaticKeepAliveClientMi
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            selectedAddress.address,
+                            selectedAddress!.address,
                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                           const SizedBox(height: 6),

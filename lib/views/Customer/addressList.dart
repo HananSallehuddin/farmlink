@@ -229,12 +229,31 @@ import 'package:farmlink/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class addressListUI extends StatelessWidget {
+class addressListUI extends StatefulWidget {
+  @override
+  _addressListUIState createState() => _addressListUIState();
+}
+
+class _addressListUIState extends State<addressListUI> {
+  final UserController userController = Get.find<UserController>();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAddresses();
+  }
+
+  // Fetch addresses when the widget is initialized
+  Future<void> _fetchAddresses() async {
+    try {
+      await userController.fetchAddresses();
+    } catch (e) {
+      print('Error fetching addresses: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final userController = Get.find<UserController>();
-    userController.fetchAddresses();
-
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         backgroundColor: Styles.primaryColor,
@@ -282,7 +301,6 @@ class addressListUI extends StatelessWidget {
               ),
               onDismissed: (direction) {
                 userController.deleteAddress(address);
-                //Get.snackbar('Deleted', 'Address removed successfully.');
               },
               child: Card(
                 elevation: 4,
@@ -301,11 +319,16 @@ class addressListUI extends StatelessWidget {
                     ],
                   ),
                   trailing: isSelected
-                      ? const Icon(Icons.check_circle, color: Colors.black26) // Show checkmark only for selected address
+                      ? const Icon(Icons.check_circle, color: Colors.black26)
                       : null,
+                  // onTap: () {
+                  //   userController.selectAddress(address);
+                  // },
                   onTap: () {
-                    userController.selectAddress(address);
-                  },
+                    userController.selectedAddress?.value = address;  // Correct way to set the value
+                    print('Selected Address: ${userController.selectedAddress.value?.toString()}');
+                    Get.back();  // Navigate back to the previous screen (e.g., checkout)
+                  }
                 ),
               ),
             );
