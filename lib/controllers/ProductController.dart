@@ -268,6 +268,7 @@ class ProductController extends GetxController {
       }
 
       await refreshProducts();
+      Get.back();
       Get.snackbar('Success', 'Product updated successfully');
     } catch (e) {
       print('Error updating product: $e');

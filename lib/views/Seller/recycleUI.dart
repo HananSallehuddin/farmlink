@@ -18,152 +18,180 @@ class recycleUI extends StatelessWidget {
         foregroundColor: Colors.black,
         elevation: 4,
       ),
-      body: RefreshIndicator(
-        onRefresh: () => productController.refreshProducts(),
-        child: Obx(() {
-          if (productController.isLoading.value) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          final expiredProducts = productController.produceList.where(
-            (product) => product.isExpired() || product.status == 'recycled'
-          ).toList();
-
-          if (expiredProducts.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.recycling, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text(
-                    'No expired products',
+      body: Column(
+        children: [
+          // Reminder Banner
+          Container(
+            padding: EdgeInsets.all(16),
+            color: Colors.yellow[100],
+            child: Row(
+              children: [
+                Icon(Icons.warning, color: Colors.orange, size: 24),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    "Reminder: Recycled produces need to be sent to Unit Kompos PascaTuai.",
                     style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orange[800],
                     ),
                   ),
-                ],
-              ),
-            );
-          }
-
-          return ListView.builder(
-            padding: EdgeInsets.all(16),
-            itemCount: expiredProducts.length,
-            itemBuilder: (context, index) {
-              final product = expiredProducts[index];
-              final isExpired = product.isExpired();
-              final isRecycled = product.status == 'recycled';
-
-              return Card(
-                margin: EdgeInsets.only(bottom: 16),
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Column(
-                    children: [
-                      // Status Banner
-                      Container(
-                        color: isRecycled ? Colors.red : Colors.orange,
-                        width: double.infinity,
-                        padding: EdgeInsets.symmetric(vertical: 8),
-                        child: Text(
-                          isRecycled ? 'RECYCLED' : 'EXPIRED',
-                          textAlign: TextAlign.center,
+              ],
+            ),
+          ),
+          // Refreshable Product List
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () => productController.refreshProducts(),
+              child: Obx(() {
+                if (productController.isLoading.value) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                final expiredProducts = productController.produceList.where(
+                  (product) => product.isExpired() || product.status == 'recycled'
+                ).toList();
+
+                if (expiredProducts.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.recycling, size: 64, color: Colors.grey),
+                        SizedBox(height: 16),
+                        Text(
+                          'No expired products',
                           style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Colors.grey,
                           ),
                         ),
+                      ],
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  padding: EdgeInsets.all(16),
+                  itemCount: expiredProducts.length,
+                  itemBuilder: (context, index) {
+                    final product = expiredProducts[index];
+                    final isExpired = product.isExpired();
+                    final isRecycled = product.status == 'recycled';
+
+                    return Card(
+                      margin: EdgeInsets.only(bottom: 16),
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Column(
                           children: [
-                            // Product Image
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: product.imageUrls.isNotEmpty
-                                ? Image.network(
-                                    product.imageUrls[0],
-                                    width: 100,
-                                    height: 100,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) =>
-                                      Container(
-                                        width: 100,
-                                        height: 100,
-                                        color: Colors.grey[300],
-                                        child: Icon(Icons.error),
-                                      ),
-                                  )
-                                : Container(
-                                    width: 100,
-                                    height: 100,
-                                    color: Colors.grey[300],
-                                    child: Icon(Icons.image),
-                                  ),
+                            // Status Banner
+                            Container(
+                              color: isRecycled ? Colors.red : Colors.orange,
+                              width: double.infinity,
+                              padding: EdgeInsets.symmetric(vertical: 8),
+                              child: Text(
+                                isRecycled ? 'RECYCLED' : 'EXPIRED',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
-                            SizedBox(width: 16),
-                            // Product Details
-                            Expanded(
-                              child: Column(
+                            Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    product.productName,
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  SizedBox(height: 8),
-                                  Text(
-                                    'Stock: ${product.stock}',
-                                    style: TextStyle(
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                                  Text(
-                                    'Expiry: ${DateFormat('dd MMM yyyy').format(product.expiryDate)}',
-                                    style: TextStyle(
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                                  SizedBox(height: 8),
-                                  if (!isRecycled)
-                                    ElevatedButton(
-                                      onPressed: () => _showRecycleConfirmation(
-                                        context,
-                                        product,
-                                      ),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.red,
-                                        foregroundColor: Colors.white,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(8),
+                                  // Product Image
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: product.imageUrls.isNotEmpty
+                                      ? Image.network(
+                                          product.imageUrls[0],
+                                          width: 100,
+                                          height: 100,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) =>
+                                            Container(
+                                              width: 100,
+                                              height: 100,
+                                              color: Colors.grey[300],
+                                              child: Icon(Icons.error),
+                                            ),
+                                        )
+                                      : Container(
+                                          width: 100,
+                                          height: 100,
+                                          color: Colors.grey[300],
+                                          child: Icon(Icons.image),
                                         ),
-                                      ),
-                                      child: Text('Mark as Recycled'),
+                                  ),
+                                  SizedBox(width: 16),
+                                  // Product Details
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          product.productName,
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        SizedBox(height: 8),
+                                        Text(
+                                          'Stock: ${product.stock}',
+                                          style: TextStyle(
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                        Text(
+                                          'Expiry: ${DateFormat('dd MMM yyyy').format(product.expiryDate)}',
+                                          style: TextStyle(
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                        SizedBox(height: 8),
+                                        if (!isRecycled)
+                                          ElevatedButton(
+                                            onPressed: () => _showRecycleConfirmation(
+                                              context,
+                                              product,
+                                            ),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.red,
+                                              foregroundColor: Colors.white,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                            ),
+                                            child: Text('Mark as Recycled'),
+                                          ),
+                                      ],
                                     ),
+                                  ),
                                 ],
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        }),
+                    );
+                  },
+                );
+              }),
+            ),
+          ),
+        ],
       ),
       bottomNavigationBar: bottomNavigationBarSeller(
         currentRoute: '/recyclePage',
