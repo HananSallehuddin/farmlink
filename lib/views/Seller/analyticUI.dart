@@ -34,7 +34,8 @@ class _AnalyticUIState extends State<analyticUI> {
         child: Center(
           child: Obx(() {
             // Show loading spinner while data is loading
-            if (analyticController.orderedProducts.isEmpty || analyticController.monthlySales.isEmpty) {
+            
+            if (analyticController.monthlySales.isEmpty) {
               return CircularProgressIndicator();
             } else {
               // Display analytics UI after data is loaded
@@ -47,6 +48,16 @@ class _AnalyticUIState extends State<analyticUI> {
                   // Bar Chart for the selected month
                   _buildBarChart(selectedMonth.value),
                   SizedBox(height: 50),
+                  _buildTotalSales(selectedMonth.value),
+                  SizedBox(height: 50),
+                  // Display total sales for the year
+                  _buildYearlyBarChart(),
+                  SizedBox(height: 50),
+                  Text(
+                  'Total Sales for the Year: \RM${_calculateTotalSalesForYear(analyticController.monthlySales).toStringAsFixed(2)}',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 20),
                   // Display ordered products with quantities
                   Text(
                     'Product Sold:',
@@ -69,8 +80,8 @@ class _AnalyticUIState extends State<analyticUI> {
   /// Checks and fetches sales data (dummy or real)
   void _checkAndFetchSalesData() {
     String currentUserUid = FirebaseAuth.instance.currentUser!.uid;
-    analyticController.fetchSalesData();  // Assuming this method checks the sales data.
-    // If you need to populate dummy data, you can do so here as well
+    analyticController.fetchSalesData(); 
+    analyticController.fetchOrderedProducts();
     if (currentUserUid == analyticController.hardcodedSellerId) {
       analyticController.populateDummyDataForChart();  // Populate dummy data if needed
     }
@@ -176,6 +187,117 @@ class _AnalyticUIState extends State<analyticUI> {
     return categories.indexOf(category);
   }
 
+  /// Display Total Sales for the selected month
+  Widget _buildTotalSales(String month) {
+    double totalSales = 0.0;
+    Map<String, double> categorySales = analyticController.monthlySales[month] ?? {};
+    categorySales.forEach((category, sales) {
+      totalSales += sales;
+    });
+
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Text(
+        'Total Sales for $month: \RM${totalSales.toStringAsFixed(2)}',
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  /// Bar Chart for the Entire Year (Summing up all categories for each month)
+Widget _buildYearlyBarChart() {
+  return Container(
+    height: 400,
+    padding: EdgeInsets.symmetric(horizontal: 16.0),
+    child: BarChart(
+      BarChartData(
+        alignment: BarChartAlignment.center,
+        barGroups: _showingSalesForYear(analyticController.monthlySales),
+        titlesData: _buildYearlyTitlesData(),
+        borderData: FlBorderData(show: false),
+        gridData: FlGridData(show: true, drawVerticalLine: true, drawHorizontalLine: false),
+      ),
+    ),
+  );
+}
+
+/// Title formatting for the chart (X-axis) for yearly sales
+FlTitlesData _buildYearlyTitlesData() {
+  return FlTitlesData(
+    leftTitles: SideTitles(
+      showTitles: true,
+      getTitles: (value) => value.toInt() % 100 == 0 ? value.toInt().toString() : '',
+      interval: 300,
+      margin: 8,
+    ),
+    bottomTitles: SideTitles(
+      showTitles: true,
+      getTitles: (double value) {
+        List<String> months = [
+          'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        ];
+
+        if (value.toInt() < months.length) {
+          return months[value.toInt()];
+        }
+        return '';
+      },
+      margin: 16,
+      rotateAngle: 45,
+    ),
+  );
+}
+
+/// Sales data for the entire year
+List<BarChartGroupData> _showingSalesForYear(Map<String, Map<String, double>> monthlySales) {
+  List<BarChartGroupData> barGroups = [];
+  
+  List<String> months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+  ];
+  
+  int index = 0;
+  for (String month in months) {
+    // Sum sales across all categories for the given month
+    double totalSalesForMonth = 0.0;
+    Map<String, double> categorySales = monthlySales[month] ?? {};
+    
+    categorySales.forEach((category, sales) {
+      totalSalesForMonth += sales;
+    });
+    
+    barGroups.add(
+      BarChartGroupData(
+        x: index++,
+        barRods: [
+          BarChartRodData(
+            y: totalSalesForMonth,
+            colors: [Styles.primaryColor], 
+            width: 15,
+            backDrawRodData: BackgroundBarChartRodData(show: false),
+          ),
+        ],
+      ),
+    );
+  }
+
+  return barGroups;
+}
+/// Calculate total sales for the year by summing sales for all months and categories
+double _calculateTotalSalesForYear(Map<String, Map<String, double>> monthlySales) {
+  double totalSales = 0.0;
+
+  monthlySales.forEach((month, categorySales) {
+    categorySales.forEach((category, sales) {
+      totalSales += sales; // Add sales for each category
+    });
+  });
+
+  return totalSales;
+}
+
   /// Display ordered products in a table
   Widget _buildOrderedProductsTable() {
     return Table(
@@ -188,6 +310,13 @@ class _AnalyticUIState extends State<analyticUI> {
         // Header Row
         TableRow(
           children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                'Category',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
@@ -207,9 +336,14 @@ class _AnalyticUIState extends State<analyticUI> {
         // Data Rows
         ...analyticController.orderedProducts.entries.map((entry) {
           var productName = entry.key;
+          var category = entry.key;
           var quantity = entry.value;
           return TableRow(
             children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(category),
+              ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(productName),

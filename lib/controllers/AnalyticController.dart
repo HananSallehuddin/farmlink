@@ -317,117 +317,6 @@ void populateDummyDataForChart() {
 // }
 
 
-// Method to calculate total sales for each month in a year for dummy data
-Future<void> fetchTotalSalesByMonthDummyData() async {
-try {
-double totalSales = 0.0;
-
-
-// Define categories and their respective sales data (category -> month -> sales)
-Map<String, Map<String, double>> categorizedSalesData = {
-'Fruits': {
-'Jan': 300.0,
-'Feb': 350.0,
-'Mar': 450.0,
-'Apr': 500.0,
-'May': 550.0,
-'Jun': 600.0,
-'Jul': 550.0,
-'Aug': 525.0,
-'Sep': 550.0,
-'Oct': 600.0,
-'Nov': 700.0,
-'Dec': 800.0,
-},
-'Vegetables': {
-'Jan': 200.0,
-'Feb': 250.0,
-'Mar': 300.0,
-'Apr': 350.0,
-'May': 400.0,
-'Jun': 450.0,
-'Jul': 420.0,
-'Aug': 400.0,
-'Sep': 430.0,
-'Oct': 470.0,
-'Nov': 500.0,
-'Dec': 600.0,
-},
-'Herbs': {
-'Jan': 100.0,
-'Feb': 120.0,
-'Mar': 150.0,
-'Apr': 200.0,
-'May': 220.0,
-'Jun': 250.0,
-'Jul': 240.0,
-'Aug': 230.0,
-'Sep': 240.0,
-'Oct': 250.0,
-'Nov': 300.0,
-'Dec': 350.0,
-},
-'Others': {
-'Jan': 400.0,
-'Feb': 480.0,
-'Mar': 600.0,
-'Apr': 750.0,
-'May': 830.0,
-'Jun': 1000.0,
-'Jul': 990.0,
-'Aug': 945.0,
-'Sep': 1000.0,
-'Oct': 1280.0,
-'Nov': 1500.0,
-'Dec': 1750.0,
-},
-};
-
-
-// Reset monthlySales to an empty map to update properly
-monthlySales.value = {};
-
-
-// Calculate total sales and update monthlySales with total sales for each month
-List<String> months = [
-'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-];
-
-
-for (var month in months) {
-double monthTotalSales = 0.0;
-
-
-// Sum the sales for each category in the current month
-categorizedSalesData.forEach((category, monthlyData) {
-monthTotalSales += monthlyData[month] ?? 0.0;
-});
-
-
-// Store the total sales for the month in the monthlySales map
-monthlySales[month] = {
-'Total Sales': monthTotalSales,
-};
-
-
-totalSales += monthTotalSales;
-print('Total Sales for $month: $monthTotalSales');
-}
-
-
-// Update the total sales for the entire year
-this.totalSales.value = totalSales;
-print('Final Total Sales (Dummy) for the Year: $totalSales');
-// Optionally, print out the updated monthly sales data
-print('Monthly Sales Data Updated for Dummy: $monthlySales');
-
-
-} catch (e) {
-print('Error fetching total sales by month for dummy data: $e');
-}
-}
-
-
 Future<void> fetchOrderedProducts() async {
 try {
 var ordersSnapshot = await FirebaseFirestore.instance.collection('orders').get();
@@ -483,5 +372,6 @@ print('Ordered Products with Quantities: $orderedProducts');
 } catch (e) {
 print("Error fetching ordered products: $e");
 }
+
 }
 }
