@@ -40,6 +40,7 @@ class _HomepageSellerState extends State<HomepageSeller> with AutomaticKeepAlive
       appBar: _buildAppBar(),
       body: Column(
         children: [
+          _buildSearchBar(),
           _buildCategoryFilter(),
           Expanded(
             child: RefreshIndicator(
@@ -56,74 +57,62 @@ class _HomepageSellerState extends State<HomepageSeller> with AutomaticKeepAlive
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      title: Obx(() {
-        if (isSearchActive.value) {
-          return TextField(
-            controller: searchController,
-            autofocus: true,
-            decoration: InputDecoration(
-              hintText: 'Search...',
-              filled: true,
-              fillColor: Colors.white,
-              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide.none,
-              ),
-              prefixIcon: Icon(Icons.search),
-              suffixIcon: IconButton(
-                icon: Icon(Icons.close),
-                onPressed: () {
-                  searchController.clear();
-                  productController.filterProduce('');
-                  isSearchActive.value = false;
-                },
-              ),
-            ),
-            onChanged: (value) => productController.filterProduce(value),
-          );
-        }
-        return Row(
-          children: [
-            Expanded(
-              child: GestureDetector(
-                onTap: () => isSearchActive.value = true,
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.search, color: Colors.grey),
-                      SizedBox(width: 8),
-                      Text(
-                        'Search...',
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(width: 8),
-            GestureDetector(
-              onTap: () => Get.toNamed('/productForm'),
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Styles.primaryColor,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(Icons.add, color: Colors.white),
-              ),
-            ),
-          ],
-        );
-      }),
+  return AppBar(
+    leading: Image.asset(
+      'assets/farmlink logo wo quotes.png',
+      height: 150,
+    ),
+    title: Center(
+      child: Text(
+        'Farmlink',
+        style: TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    ),
+    actions: [
+      GestureDetector(
+        onTap: () => Get.toNamed('/productForm'),
+        child: Container(
+          margin: EdgeInsets.symmetric(horizontal: 8),
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: Styles.primaryColor,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(Icons.add, color: Colors.white),
+        ),
+      ),
+    ],
+  );
+}
+
+    Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: TextField(
+        controller: searchController,
+        decoration: InputDecoration(
+          labelText: 'Search Products',
+          hintText: 'Enter product name...',
+          prefixIcon: Icon(Icons.search),
+          suffixIcon: IconButton(
+            icon: Icon(Icons.clear),
+            onPressed: () {
+              searchController.clear();
+              productController.filterProduce('');
+            },
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        onChanged: (value) {
+          productController.filterProduce(value);
+        },
+      ),
     );
   }
 

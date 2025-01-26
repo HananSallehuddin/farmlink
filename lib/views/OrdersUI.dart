@@ -186,7 +186,7 @@ class _OrdersUIState extends State<OrdersUI> with SingleTickerProviderStateMixin
                 ),
                 SizedBox(height: 16),
                 Text(
-                  'Total Amount: \$${totalAmount.toStringAsFixed(2)}',
+                  'Total Amount: \RM${totalAmount.toStringAsFixed(2)}',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,

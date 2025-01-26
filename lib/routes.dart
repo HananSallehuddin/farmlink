@@ -98,15 +98,22 @@ class Routes {
     GetPage(
       name: sellerprofile,
       page: () => sellerProfileUI(),
-      middlewares: [AuthMiddleware()],
+      middlewares: [AuthMiddleware(), RoleMiddleware('Seller')],
       transition: _defaultTransition,
       transitionDuration: _transitionDuration,
-      binding: BindingsBuilder(() {
-        // Ensure role is available for bottom navigation
-        final role = userController.currentUser.value?.role ?? '';
-        Get.put(role, tag: 'currentRole', permanent: true);
-      }),
     ),
+    // GetPage(
+    //   name: sellerprofile,
+    //   page: () => sellerProfileUI(),
+    //   middlewares: [AuthMiddleware()],
+    //   transition: _defaultTransition,
+    //   transitionDuration: _transitionDuration,
+    //   binding: BindingsBuilder(() {
+    //     // Ensure role is available for bottom navigation
+    //     final role = userController.currentUser.value?.role ?? '';
+    //     Get.put(role, tag: 'currentRole', permanent: true);
+    //   }),
+    // ),
     GetPage(
       name: editprofile,
       page: () => editProfileUI(),

@@ -14,15 +14,16 @@ class analyticUI extends StatefulWidget {
 class _AnalyticUIState extends State<analyticUI> {
   final AnalyticController analyticController = Get.put(AnalyticController());
 
-  String? _selectedMonth; // Variable to store selected month
-  double? _selectedMonthSales; // Variable to store selected month's sales
+  // Reactive selectedMonth
+  RxString selectedMonth = 'Jan'.obs;
 
   @override
   void initState() {
     super.initState();
-    // Call the method to fetch ordered products when the UI initializes
-    analyticController.fetchOrderedProducts();
-    _checkAndFetchDummyData();
+    // Ensure fetching of sales data occurs after the widget is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndFetchSalesData();
+    });
   }
 
   @override
@@ -32,46 +33,27 @@ class _AnalyticUIState extends State<analyticUI> {
       body: SingleChildScrollView(
         child: Center(
           child: Obx(() {
-            // Observe the orderedProducts map and show loading until it's populated
-            if (analyticController.orderedProducts.isEmpty) {
-              return CircularProgressIndicator(); // Show loading until data is fetched
+            // Show loading spinner while data is loading
+            if (analyticController.orderedProducts.isEmpty || analyticController.monthlySales.isEmpty) {
+              return CircularProgressIndicator();
             } else {
+              // Display analytics UI after data is loaded
               return Column(
                 children: [
-                  SizedBox(height: 100),
-                  _buildBarChart(),
                   SizedBox(height: 20),
-                  // Display the total sales below the bar chart
-                  Text(
-                    'Total Sales: RM${analyticController.monthlySales.values.fold(0.0, (sum, sales) => sum + sales).toStringAsFixed(2)}',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
+                  // Month Selector
+                  _buildMonthSelector(),
                   SizedBox(height: 20),
-                  // Only display the sales of the selected month here
-                  if (_selectedMonth != null && _selectedMonthSales != null)
-                    Text(
-                      'Sales for $_selectedMonth: RM${_selectedMonthSales!.toStringAsFixed(2)}',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                  SizedBox(height: 20),
+                  // Bar Chart for the selected month
+                  _buildBarChart(selectedMonth.value),
+                  SizedBox(height: 50),
                   // Display ordered products with quantities
                   Text(
-                    'Ordered Products:',
+                    'Product Sold:',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 10),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: analyticController.orderedProducts.length,
-                    itemBuilder: (context, index) {
-                      var productName = analyticController.orderedProducts.keys.toList()[index];
-                      var quantity = analyticController.orderedProducts.values.toList()[index];
-                      return ListTile(
-                        title: Text(productName),
-                        subtitle: Text('Quantity: $quantity'),
-                      );
-                    },
-                  ),
+                  _buildOrderedProductsTable(),
                 ],
               );
             }
@@ -84,23 +66,46 @@ class _AnalyticUIState extends State<analyticUI> {
     );
   }
 
-  void _checkAndFetchDummyData() {
+  /// Checks and fetches sales data (dummy or real)
+  void _checkAndFetchSalesData() {
     String currentUserUid = FirebaseAuth.instance.currentUser!.uid;
-    if (currentUserUid == 'Xqc1QauV1heZjHtzfnJdQrSoXAO2') {
-      analyticController.fetchSalesDummyData();
+    analyticController.fetchSalesData();  // Assuming this method checks the sales data.
+    // If you need to populate dummy data, you can do so here as well
+    if (currentUserUid == analyticController.hardcodedSellerId) {
+      analyticController.populateDummyDataForChart();  // Populate dummy data if needed
     }
   }
 
-  Widget _buildBarChart() {
+  /// Month Selector (Dropdown Menu)
+  Widget _buildMonthSelector() {
+    List<String> months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return DropdownButton<String>(
+      value: selectedMonth.value, // Reactive value
+      onChanged: (newMonth) {
+        selectedMonth.value = newMonth!; // Update reactive value
+      },
+      items: months.map<DropdownMenuItem<String>>((String month) {
+        return DropdownMenuItem<String>(
+          value: month,
+          child: Text(month),
+        );
+      }).toList(),
+    );
+  }
+
+  /// Bar Chart for the selected month
+  Widget _buildBarChart(String month) {
     return Container(
-      height: 500,
+      height: 400,
       padding: EdgeInsets.symmetric(horizontal: 16.0),
       child: BarChart(
         BarChartData(
-          alignment: BarChartAlignment.spaceAround,
-          barGroups: _showingMonthlySales(analyticController.monthlySales),
+          alignment: BarChartAlignment.center,
+          barGroups: _showingSalesForMonth(analyticController.monthlySales, month),
           titlesData: _buildTitlesData(),
-          barTouchData: _buildBarTouchData(),
           borderData: FlBorderData(show: false),
           gridData: FlGridData(show: true, drawVerticalLine: true, drawHorizontalLine: false),
         ),
@@ -108,17 +113,28 @@ class _AnalyticUIState extends State<analyticUI> {
     );
   }
 
-  List<BarChartGroupData> _showingMonthlySales(Map<String, double> monthlySales) {
+  /// Sales data for a particular month
+  List<BarChartGroupData> _showingSalesForMonth(
+      Map<String, Map<String, double>> monthlySales, String selectedMonth) {
     List<BarChartGroupData> barGroups = [];
-    monthlySales.forEach((month, sales) {
-      int index = _monthToIndex(month);
+    Map<String, double> categorySales = monthlySales[selectedMonth] ?? {};
+
+    List<Color> categoryColors = [
+      Colors.red, // Fruits
+      Colors.green, // Vegetables
+      Colors.purple, // Herbs
+      Colors.blue, // Others
+    ];
+
+    int index = 0;
+    categorySales.forEach((category, sales) {
       barGroups.add(
         BarChartGroupData(
-          x: index,
+          x: index++,
           barRods: [
             BarChartRodData(
               y: sales,
-              colors: [Styles.primaryColor],
+              colors: [categoryColors[_categoryToIndex(category)]],
               width: 15,
               backDrawRodData: BackgroundBarChartRodData(show: false),
             ),
@@ -126,216 +142,86 @@ class _AnalyticUIState extends State<analyticUI> {
         ),
       );
     });
+
     return barGroups;
   }
 
+  /// Title formatting for the chart (X-axis)
   FlTitlesData _buildTitlesData() {
     return FlTitlesData(
       leftTitles: SideTitles(
         showTitles: true,
         getTitles: (value) => value.toInt() % 100 == 0 ? value.toInt().toString() : '',
-        interval: 100,
+        interval: 300,
         margin: 8,
       ),
       bottomTitles: SideTitles(
         showTitles: true,
         getTitles: (double value) {
-          return _monthFromIndex(value.toInt());
+          if (value.toInt() < categories.length) {
+            return categories[value.toInt()];
+          }
+          return '';
         },
         margin: 16,
+        rotateAngle: 45,
       ),
     );
   }
 
-  BarTouchData _buildBarTouchData() {
-    return BarTouchData(
-      touchCallback: (response) {
-        if (response.spot != null) {
-          setState(() {
-            // Get the selected month and its sales on touch
-            int monthIndex = response.spot!.touchedBarGroupIndex;
-            _selectedMonth = _monthFromIndex(monthIndex);
-            _selectedMonthSales = analyticController.monthlySales[_selectedMonth];
-          });
-        }
+  List<String> categories = ['Fruits', 'Vegetables', 'Herbs', 'Others'];
+
+  /// Convert category to index for colors
+  int _categoryToIndex(String category) {
+    return categories.indexOf(category);
+  }
+
+  /// Display ordered products in a table
+  Widget _buildOrderedProductsTable() {
+    return Table(
+      border: TableBorder.all(color: Colors.black),
+      columnWidths: {
+        0: FixedColumnWidth(150),
+        1: FixedColumnWidth(100),
       },
-      touchTooltipData: BarTouchTooltipData(
-        tooltipBgColor: Colors.lime[400],
-        getTooltipItem: (group, groupIndex, rod, rodIndex) {
-          String month = _monthFromIndex(group.x.toInt());
-          return BarTooltipItem(
-            'RM${rod.y.toStringAsFixed(2)}',
-            TextStyle(color: Colors.black),
+      children: [
+        // Header Row
+        TableRow(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                'Product Name',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                'Quantity',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+        // Data Rows
+        ...analyticController.orderedProducts.entries.map((entry) {
+          var productName = entry.key;
+          var quantity = entry.value;
+          return TableRow(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(productName),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(quantity.toString()),
+              ),
+            ],
           );
-        },
-      ),
+        }).toList(),
+      ],
     );
-  }
-
-  List<String> months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-  int _monthToIndex(String month) {
-    return months.indexOf(month);
-  }
-
-  String _monthFromIndex(int index) {
-    return months[index];
   }
 }
-
-
-// class analyticUI extends StatelessWidget {
-//   final AnalyticController analyticController = Get.put(AnalyticController());
-
-//   @override
-//   Widget build(BuildContext context) {
-//     _checkAndFetchDummyData();
-
-//     return Scaffold(
-//       appBar: AppBar(title: Text('Sales Analytics')),
-//       body: SingleChildScrollView(
-//         child: Center(
-//           child: Obx(() {
-//             if (analyticController.monthlySales.isEmpty) {
-//               return CircularProgressIndicator(); // Show loading until data is fetched
-//             } else {
-//               return Column(
-//                 children: [
-//                   SizedBox(height: 100),
-//                   _buildBarChart(),
-//                   SizedBox(height: 20),
-//                   _buildTotalSalesText(),
-//                   SizedBox(height: 20),
-//                   //_buildOrdersListText(),
-//                 ],
-//               );
-//             }
-//           }),
-//         ),
-//       ),
-//     );
-//   }
-
-//   void _checkAndFetchDummyData(){
-//     String currentUserUid = FirebaseAuth.instance.currentUser!.uid;
-//     if (currentUserUid == 'Xqc1QauV1heZjHtzfnJdQrSoXAO2' ) {
-//       analyticController.fetchSalesDummyData();
-//     }
-//   }
-
-//   Widget _buildBarChart() {
-//     return Container(
-//       height: 400,
-//       padding: EdgeInsets.symmetric(horizontal: 16.0),
-//       child: BarChart(
-//         BarChartData(
-//           alignment: BarChartAlignment.spaceAround,
-//           barGroups: _showingMonthlySales(analyticController.monthlySales),
-//           titlesData: _buildTitlesData(),
-//           barTouchData: _buildBarTouchData(),
-//           borderData: FlBorderData(show: false),
-//           gridData: FlGridData(show: true, drawVerticalLine: true),
-//         ),
-//       ),
-//     );
-//   }
-
-//   List<BarChartGroupData> _showingMonthlySales(Map<String, double> monthlySales) {
-//     List<BarChartGroupData> barGroups = [];
-//     monthlySales.forEach((month, sales) {
-//       int index = _monthToIndex(month);
-//       barGroups.add(
-//         BarChartGroupData(
-//           x: index,
-//           barRods: [
-//             BarChartRodData(
-//               y: sales,
-//               colors: [Styles.primaryColor],
-//               width: 15,
-//               backDrawRodData: BackgroundBarChartRodData(show: false),
-//             ),
-//           ],
-//           showingTooltipIndicators: [0],
-//         ),
-//       );
-//     });
-//     return barGroups;
-//   }
-
-//   FlTitlesData _buildTitlesData() {
-//     return FlTitlesData(
-//       leftTitles: SideTitles(
-//         showTitles: true,
-//         getTitles: (value) => value.toInt() % 100 == 0 ? value.toInt().toString() : '',
-//         interval: 100,
-//         margin: 8,
-//       ),
-//       bottomTitles: SideTitles(
-//         showTitles: true,
-//         getTitles: (double value) {
-//           return _monthFromIndex(value.toInt());
-//         },
-//         margin: 16,
-//       ),
-//     );
-//   }
-
-//   BarTouchData _buildBarTouchData() {
-//     return BarTouchData(
-//       touchTooltipData: BarTouchTooltipData(
-//         tooltipBgColor: Colors.lime[400],
-//         getTooltipItem: (group, groupIndex, rod, rodIndex) {
-//           String month = _monthFromIndex(group.x.toInt());
-//           return BarTooltipItem(
-//             'RM${rod.y.toStringAsFixed(2)}',
-//             TextStyle(color: Colors.black),
-//           );
-//         },
-//       ),
-//     );
-//   }
-
-//   Widget _buildTotalSalesText() {
-//     double totalSales = analyticController.monthlySales.values.fold(0.0, (sum, element) => sum + element);
-//     return Text(
-//       'Total Sales: RM${totalSales.toStringAsFixed(2)}',
-//       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-//     );
-//   }
-
-//   // Widget _buildOrdersListText() {
-//   //   return FutureBuilder<List<Map<String, dynamic>>>(
-//   //     future: analyticController.fetchAllOrdersWithQuantities(),
-//   //     builder: (context, snapshot) {
-//   //       if (snapshot.connectionState == ConnectionState.waiting) {
-//   //         return CircularProgressIndicator();  // Show loading spinner while fetching data
-//   //       } else if (snapshot.hasError) {
-//   //         return Text('Error: ${snapshot.error}');
-//   //       } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-//   //         return Text('No orders available');
-//   //       } else {
-//   //         var orders = snapshot.data!;
-//   //         return Column(
-//   //           children: orders.map((order) {
-//   //             return ListTile(
-//   //               title: Text('Order ID: ${order['orderId']}'),
-//   //               subtitle: Text('Product ID: ${order['pid']} - Quantity: ${order['quantity']}'),
-//   //               trailing: Text('RM${order['totalAmount'].toStringAsFixed(2)}'),
-//   //             );
-//   //           }).toList(),
-//   //         );
-//   //       }
-//   //     },
-//   //   );
-//   // }
-
-//   List<String> months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-//   int _monthToIndex(String month) {
-//     return months.indexOf(month);
-//   }
-
-//   String _monthFromIndex(int index) {
-//     return months[index];
-//   }
-// }

@@ -221,7 +221,7 @@ class _sellerProfileUIState extends State<sellerProfileUI> with AutomaticKeepAli
                     ),
                     ),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -239,25 +239,8 @@ class _sellerProfileUIState extends State<sellerProfileUI> with AutomaticKeepAli
                     ),
                     ),
                 ),
-                SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => Get.toNamed('analytic'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Styles.primaryColor,
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: Text(  
-                      'View Analytics',
-                      style: TextStyle(fontSize: 16, color: Colors.white),
-                    ),
-                    ),
-                ),
-                SizedBox(height: 16),
+                SizedBox(height: 24),
+                
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(

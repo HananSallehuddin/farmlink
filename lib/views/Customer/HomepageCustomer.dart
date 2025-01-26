@@ -307,26 +307,26 @@ class _HomepageCustomerState extends State<HomepageCustomer> with AutomaticKeepA
                               ),
                             ),
                             SizedBox(height: 4),
-                            Obx(() {
-                                final averageRating = ratingController.produceRatings[product.pid]?.value ?? 0.0;
-                                return Row(
-                                  children: [
-                                    Icon(
-                                      Icons.star,
-                                      size: 14,
-                                      color: Colors.amber,
-                                    ),
-                                    SizedBox(width: 4),  // Space between the star and the rating
-                                    Text(
-                                      averageRating == 0.0 ? 'Not Rated yet' : '${averageRating.toStringAsFixed(1)}',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              }),
+                            // Obx(() {
+                            //     final averageRating = ratingController.produceRatings[product.pid]?.value ?? 0.0;
+                            //     return Row(
+                            //       children: [
+                            //         Icon(
+                            //           Icons.star,
+                            //           size: 14,
+                            //           color: Colors.amber,
+                            //         ),
+                            //         SizedBox(width: 4),  // Space between the star and the rating
+                            //         Text(
+                            //           averageRating == 0.0 ? 'Not Rated yet' : '${averageRating.toStringAsFixed(1)}',
+                            //           style: TextStyle(
+                            //             fontSize: 12,
+                            //             color: Colors.grey[600],
+                            //           ),
+                            //         ),
+                            //       ],
+                            //     );
+                            //   }),
                             FutureBuilder<Map<String, dynamic>>(
                               future: _getSellerInfo(product.userRef!),
                               builder: (context, snapshot) {

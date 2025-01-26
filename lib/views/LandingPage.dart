@@ -29,11 +29,11 @@ class LandingPage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Image.asset(
-                      "assets/logo farmlink.png",
-                      height: 200,
+                      "assets/farmlink logo wo quotes.png",
+                      height: 350,
                       fit: BoxFit.contain,
                     ),
-                    const SizedBox(height: 24),
+                    //const SizedBox(height: 8),
                     Text(
                       'Connect with Local Farmers',
                       style: TextStyle(
@@ -115,16 +115,16 @@ class LandingPage extends StatelessWidget {
               ),
 
               // Footer
-              Padding(
-                padding: const EdgeInsets.only(bottom: 24.0),
-                child: Text(
-                  'Supporting Local Agriculture',
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
-                  ),
-                ),
-              ),
+              // Padding(
+              //   padding: const EdgeInsets.only(bottom: 24.0),
+              //   child: Text(
+              //     'Supporting Local Agriculture',
+              //     style: TextStyle(
+              //       color: Colors.grey[600],
+              //       fontSize: 14,
+              //     ),
+              //   ),
+              // ),
             ],
           ),
         ),

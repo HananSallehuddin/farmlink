@@ -240,7 +240,7 @@ class CartController extends GetxController {
       //Get.snackbar('Success', 'Product removed from cart');
     } catch(e) {
       print('Error removing produce from cart: $e');
-      Get.snackbar('Error', 'Failed to remove product from cart');
+      //Get.snackbar('Error', 'Failed to remove product from cart');
     } finally {
       isAnyLoading.value = false;
     }
@@ -315,9 +315,9 @@ class CartController extends GetxController {
           int currentStock = productData['stock'] as int;
           int requestedQuantity = cart.value.quantity[produce.pid] ?? 0;
 
-          if (currentStock < requestedQuantity) {
-            throw Exception('Insufficient stock for ${produce.productName}');
-          }
+          // if (currentStock < requestedQuantity) {
+          //   throw Exception('Insufficient stock for ${produce.productName}');
+          // }
 
           String sellerId = produce.userRef!.id;
           sellerIds.add(sellerId);
@@ -339,13 +339,13 @@ class CartController extends GetxController {
           }
           productsBySeller[sellerId]!.add(verifiedProduct);
 
-          transaction.update(
-            _firestore.collection('localProduce').doc(produce.pid),
-            {
-              'stock': currentStock - requestedQuantity,
-              'status': (currentStock - requestedQuantity) > 0 ? 'available' : 'out of stock'
-            }
-          );
+          // transaction.update(
+          //   _firestore.collection('localProduce').doc(produce.pid),
+          //   {
+          //     'stock': currentStock - requestedQuantity,
+          //     'status': (currentStock - requestedQuantity) > 0 ? 'available' : 'out of stock'
+          //   }
+          // );
         }
 
         String fullAddress = '${selectedAddress.value!.address}, ${selectedAddress.value!.city}, ${selectedAddress.value!.state} ${selectedAddress.value!.zipCode}';

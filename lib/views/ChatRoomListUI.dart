@@ -323,7 +323,7 @@ class _ChatRoomListUIState extends State<ChatRoomListUI>
             size: 80,
             color: Styles.primaryColor,
           ),
-          SizedBox(height: 24),
+          SizedBox(height: 16),
           Text(
             'FarmLink Support',
             style: TextStyle(
@@ -386,18 +386,18 @@ class _ChatRoomListUIState extends State<ChatRoomListUI>
             ],
           ),
           SizedBox(height: 32),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 32),
-            child: Text(
-              'Our support bot uses AI to provide instant help with your queries. For complex issues, we\'ll connect you with our support team.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-                height: 1.5,
-              ),
-            ),
-          ),
+          // Container(
+          //   padding: EdgeInsets.symmetric(horizontal: 32),
+          //   child: Text(
+          //     'Our support bot user pre-defined intent to help you solved queries.',
+          //     textAlign: TextAlign.center,
+          //     style: TextStyle(
+          //       fontSize: 12,
+          //       color: Colors.grey[600],
+          //       height: 1.5,
+          //     ),
+          //   ),
+          // ),
         ],
       ),
     );

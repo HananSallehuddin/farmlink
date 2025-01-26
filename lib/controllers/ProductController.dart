@@ -235,6 +235,7 @@ class ProductController extends GetxController {
     }
   }
 
+
   Future<void> updateProduce(LocalProduce updatedProduce) async {
     try {
       isLoading.value = true;
@@ -277,6 +278,46 @@ class ProductController extends GetxController {
       isLoading.value = false;
     }
   }
+
+  Future<void> changeStatusToRecycledDone(String productId) async {
+  try {
+    isLoading.value = true;
+
+    // Find the product in the local list
+    int index = produceList.indexWhere((p) => p.pid == productId);
+    if (index != -1 && produceList[index].status == 'recycled') {
+      // Update the status to 'recycledDone'
+      produceList[index].status = 'recycledDone';
+
+      // Update Firestore to reflect the change
+      final productDoc = _firestore.collection('localProduce').doc(productId);
+      await productDoc.update({'status': 'recycledDone'});
+
+      // Confirm the update by checking the document in Firestore again
+      final updatedDoc = await productDoc.get();
+      if (updatedDoc.exists) {
+        print('Firestore updated: ${updatedDoc.data()}');
+      } else {
+        print('Document not found in Firestore.');
+      }
+
+      // Refresh the produce list locally to reflect the status change
+      produceList.refresh();
+      filteredProduceList.refresh();
+      recycledProduceList.refresh();
+      
+      // Provide feedback to the user
+      Get.snackbar('Success', 'Product marked as recycled done');
+    } else {
+      Get.snackbar('Error', 'Product is not in recycled status or not found');
+    }
+  } catch (e) {
+    print('Error changing status: $e');
+    Get.snackbar('Error', 'Failed to change product status');
+  } finally {
+    isLoading.value = false;
+  }
+}
 
   Future<LocalProduce> viewProduceDetails(String pid) async {
     try {

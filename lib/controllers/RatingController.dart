@@ -10,6 +10,7 @@ class RatingController extends GetxController{
   var produceRatings = <String, RxDouble>{}.obs; 
   var averageRating = 0.0.obs;
   var isLoading = false.obs;
+  RxList<MapEntry<String, List<Rating>>> groupedProduceRatingList = <MapEntry<String, List<Rating>>>[].obs;
   
 
   Future<void> addProduceRating(String pid, Rating rating) async{
@@ -41,6 +42,8 @@ class RatingController extends GetxController{
       List<Rating> ratings = querySnapshot.docs.map((doc) {
         return Rating.fromJson(doc.data() as Map<String, dynamic>);
       }).toList();
+
+      DocumentSnapshot produceDoc = await produceRef.get();
 
       // Calculate the average rating for the product
       calcAverageRating(pid, ratings);
@@ -98,51 +101,11 @@ class RatingController extends GetxController{
       isLoading.value = false;
     }
   }
-
-// Future<void> fetchRatingsForAllProducts(List<String> productIds) async {
-//   try {
-//     isLoading.value = true;
-
-//     for (String pid in productIds) {
-//       // Fetch ratings for each product ID
-//       DocumentReference produceRef =
-//           FirebaseFirestore.instance.collection('localProduce').doc(pid);
-
-//       QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-//           .collection('ratings')
-//           .where('produceRef', isEqualTo: produceRef)
-//           .where('type', isEqualTo: 'produce')
-//           .get();
-
-//       // Map the ratings to produceRatingList
-//       produceRatingList.value = querySnapshot.docs.map((doc) {
-//         return Rating.fromJson(doc.data() as Map<String, dynamic>);
-//       }).toList();
-
-//       // Calculate the average rating using your existing method
-//       calcAverageRating();
-
-//       // Store the calculated average rating for the current product
-//       produceRatings[pid] = Rating(
-//         rid: 'Average',
-//         score: averageRating.value,
-//         review: '', // Average rating doesn't have a review
-//         dateRated: DateTime.now(),
-//         type: 'produce',
-//       );
-//     }
-//   } catch (e) {
-//     print('Error fetching ratings for products: $e');
-//   } finally {
-//     isLoading.value = false;
-//   }
-// }
-
-  Future<void> fetchProduceRatingForSeller() async {
+Future<void> fetchProduceRatingForSeller() async {
   try {
     isLoading.value = true;
     User? currentUser = FirebaseAuth.instance.currentUser;
-    
+
     // Check if the user is logged in
     if (currentUser == null) {
       Get.snackbar('Error', 'No user is currently logged in');
@@ -161,18 +124,36 @@ class RatingController extends GetxController{
     if (querySnapshot.docs.isEmpty) {
       Get.snackbar('No Ratings', 'No ratings found for your produce.');
     } else {
-      // Map query result to Rating objects and update local list
-      produceRatingList.value = querySnapshot.docs.map((doc) {
-        return Rating.fromJson(doc.data() as Map<String, dynamic>);
-      }).toList();
+      // Map query result to Rating objects
+      produceRatingList.value = await Future.wait(querySnapshot.docs.map((doc) async {
+        var ratingData = doc.data() as Map<String, dynamic>;
+        Rating rating = Rating.fromJson(ratingData);
+
+        // Fetch product details using produceRef to get productName
+        try {
+          DocumentReference produceRef = rating.produceRef!;
+          DocumentSnapshot produceDoc = await produceRef.get();
+
+          // Assuming product name is stored in 'productName' field
+          String productName = produceDoc['productName'] ?? 'Unknown Product';
+
+          // Now return just the Rating object with an additional field for productName
+          return rating; // Only return the Rating object
+        } catch (e) {
+          // Handle error when fetching product details (e.g., produceRef not found)
+          print('Error fetching product details: $e');
+          return rating; // Return rating even if product details cannot be fetched
+        }
+      }).toList());
     }
   } catch (e) {
-    print('Error fetching ratings for produce: $e');
+    print('Error fetching ratings for produce: $e');  // Detailed error logging
     Get.snackbar('Error', 'An error occurred while fetching ratings.');
-  } finally{
+  } finally {
     isLoading.value = false;
   }
 }
+
 
 }
 
@@ -260,4 +241,43 @@ class RatingController extends GetxController{
   //     print('Error adding rating: $e');
   //   }
   // }
+
+  // Future<void> fetchRatingsForAllProducts(List<String> productIds) async {
+//   try {
+//     isLoading.value = true;
+
+//     for (String pid in productIds) {
+//       // Fetch ratings for each product ID
+//       DocumentReference produceRef =
+//           FirebaseFirestore.instance.collection('localProduce').doc(pid);
+
+//       QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+//           .collection('ratings')
+//           .where('produceRef', isEqualTo: produceRef)
+//           .where('type', isEqualTo: 'produce')
+//           .get();
+
+//       // Map the ratings to produceRatingList
+//       produceRatingList.value = querySnapshot.docs.map((doc) {
+//         return Rating.fromJson(doc.data() as Map<String, dynamic>);
+//       }).toList();
+
+//       // Calculate the average rating using your existing method
+//       calcAverageRating();
+
+//       // Store the calculated average rating for the current product
+//       produceRatings[pid] = Rating(
+//         rid: 'Average',
+//         score: averageRating.value,
+//         review: '', // Average rating doesn't have a review
+//         dateRated: DateTime.now(),
+//         type: 'produce',
+//       );
+//     }
+//   } catch (e) {
+//     print('Error fetching ratings for products: $e');
+//   } finally {
+//     isLoading.value = false;
+//   }
+// }
 
