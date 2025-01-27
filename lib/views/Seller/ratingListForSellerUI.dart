@@ -20,7 +20,7 @@ class ratingListForSellerUI extends StatelessWidget {
           icon: Icon(Icons.arrow_back),
           onPressed: () => Get.back(),
         ),
-        title: Text('Produce Ratings'),
+        title: Text('Product Ratings'),
       ),
       body: Obx(() {
         var ratingList = ratingController.produceRatingList;

@@ -9,7 +9,8 @@ import 'package:intl/intl.dart';
 class AnalyticController extends GetxController {
 var totalSales = 0.0.obs;
 RxMap<String, Map<String, double>> monthlySales = <String, Map<String, double>>{}.obs; // Make this reactive
-var orderedProducts = <String, int>{}.obs;
+//var orderedProducts = <String, int>{}.obs;
+var orderedProducts = <String, Map<String, dynamic>>{}.obs;
 String hardcodedSellerId = 'Xqc1QauV1heZjHtzfnJdQrSoXAO2';
 
 
@@ -197,130 +198,25 @@ void populateDummyDataForChart() {
   },
 };
 
-    // Ordered products dummy data
-    orderedProducts.value = {
-      "Apples": 120,
-      "Carrots": 150,
-      "Basil": 50,
-      "Potatoes": 100,
-    };
+// Example update for orderedProducts
+orderedProducts.value = {
+  "Apples": {"category": "Fruits", "quantity": 120},
+  "Carrots": {"category": "Vegetables", "quantity": 150},
+  "Basil": {"category": "Herbs", "quantity": 50},
+  "Potatoes": {"category": "Vegetables", "quantity": 100},
+};
+
+print('Ordered Products with Quantities and Categories: $orderedProducts');
+
+
   }
-
-
-// // Fetch dummy data for testing (Hardcoded Seller)
-// Future<void> fetchSalesDummyData() async {
-// try {
-// double totalSales = 0.0;
-
-
-// String sellerId = 'Xqc1QauV1heZjHtzfnJdQrSoXAO2'; // Hardcoded seller ID for dummy data
-// print('Dummy Seller ID: $sellerId');
-
-
-// // Define categories and their respective sales data (category -> month -> sales)
-// Map<String, Map<String, double>> categorizedSalesData = {
-// 'Fruits': {
-// 'Jan': 300.0,
-// 'Feb': 350.0,
-// 'Mar': 450.0,
-// 'Apr': 500.0,
-// 'May': 550.0,
-// 'Jun': 600.0,
-// 'Jul': 550.0,
-// 'Aug': 525.0,
-// 'Sep': 550.0,
-// 'Oct': 600.0,
-// 'Nov': 700.0,
-// 'Dec': 800.0,
-// },
-// 'Vegetables': {
-// 'Jan': 200.0,
-// 'Feb': 250.0,
-// 'Mar': 300.0,
-// 'Apr': 350.0,
-// 'May': 400.0,
-// 'Jun': 450.0,
-// 'Jul': 420.0,
-// 'Aug': 400.0,
-// 'Sep': 430.0,
-// 'Oct': 470.0,
-// 'Nov': 500.0,
-// 'Dec': 600.0,
-// },
-// 'Herbs': {
-// 'Jan': 100.0,
-// 'Feb': 120.0,
-// 'Mar': 150.0,
-// 'Apr': 200.0,
-// 'May': 220.0,
-// 'Jun': 250.0,
-// 'Jul': 240.0,
-// 'Aug': 230.0,
-// 'Sep': 240.0,
-// 'Oct': 250.0,
-// 'Nov': 300.0,
-// 'Dec': 350.0,
-// },
-// 'Others': {
-// 'Jan': 400.0,
-// 'Feb': 480.0,
-// 'Mar': 600.0,
-// 'Apr': 750.0,
-// 'May': 830.0,
-// 'Jun': 1000.0,
-// 'Jul': 990.0,
-// 'Aug': 945.0,
-// 'Sep': 1000.0,
-// 'Oct': 1280.0,
-// 'Nov': 1500.0,
-// 'Dec': 1750.0,
-// },
-// };
-
-
-// monthlySales.value = {}; // Reset to an empty map to make sure it's updated properly
-
-
-// // Calculate total sales and update monthlySales with categorized data
-// categorizedSalesData.forEach((category, monthlyData) {
-// monthlyData.forEach((month, sales) {
-// totalSales += sales;
-// print('Sales for $category in $month: $sales');
-// // Ensure monthlySales contains all categories for each month
-// if (!monthlySales.containsKey(month)) {
-// monthlySales[month] = {
-// 'Fruits': 0.0,
-// 'Vegetables': 0.0,
-// 'Herbs': 0.0,
-// 'Others': 0.0,
-// };
-// }
-
-
-// // Add sales for the category to the specific month
-// monthlySales[month]![category] = (monthlySales[month]![category] ?? 0.0) + sales;
-// });
-// });
-
-
-// this.totalSales.value = totalSales;
-// print('Final Total Sales (Dummy): $totalSales');
-
-
-// // Update categorizedSalesData
-// print('Categorized Monthly Sales Updated: $categorizedSalesData');
-
-
-// } catch (e) {
-// print('Error fetching dummy sales data: $e');
-// }
-// }
 
 
 Future<void> fetchOrderedProducts() async {
 try {
 var ordersSnapshot = await FirebaseFirestore.instance.collection('orders').get();
 Map<String, int> productQuantities = {};
+Map<String, Map<String, dynamic>> productDetails = {};
 final currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
 
@@ -330,7 +226,6 @@ var products = List<Map<String, dynamic>>.from(orderData['products'] ?? []);
 var quantities = Map<String, dynamic>.from(orderData['quantities'] ?? {});
 
 
-// Check if the current user is the seller involved in any of the products
 for (int i = 0; i < products.length; i++) {
 var product = products[i];
 var pid = product['pid'];
@@ -347,25 +242,29 @@ var productSnapshot = await FirebaseFirestore.instance
 
 
 if (productSnapshot.exists) {
-var productData = productSnapshot.data() as Map<String, dynamic>;
-var productName = productData['productName'];
+            var productData = productSnapshot.data() as Map<String, dynamic>;
+            var productName = productData['productName'];
+            var category = productData['category'];  // Assuming 'category' field is present
 
-
-if (productQuantities.containsKey(productName)) {
-productQuantities[productName] = ((productQuantities[productName] as num? ?? 0).toInt() + (quantity?.toInt() ?? 0)).toInt();
-} else {
-productQuantities[productName] = quantity ?? 0;
-}
-}
+            // If product already exists, update its quantity and category
+            if (productDetails.containsKey(productName)) {
+              productDetails[productName]!['quantity'] = (productDetails[productName]!['quantity'] as int) + (quantity?.toInt() ?? 0);
+            } else {
+              productDetails[productName] = {
+                'quantity': quantity ?? 0,
+                'category': category ?? 'Unknown',  // Default 'Unknown' if category doesn't exist
+              };
+            }
+          }
 }
 }
 }
 
 
 // Update the ordered products with the quantities
-orderedProducts.value = Map<String, int>.from(
-productQuantities.map((key, value) => MapEntry(key, (value as num).toInt()))
-);
+orderedProducts.value = Map<String, Map<String, dynamic>>.from(
+      productDetails.map((key, value) => MapEntry(key, value))
+    );
 
 
 print('Ordered Products with Quantities: $orderedProducts');

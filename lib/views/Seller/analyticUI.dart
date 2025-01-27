@@ -300,62 +300,63 @@ double _calculateTotalSalesForYear(Map<String, Map<String, double>> monthlySales
 
   /// Display ordered products in a table
   Widget _buildOrderedProductsTable() {
-    return Table(
-      border: TableBorder.all(color: Colors.black),
-      columnWidths: {
-        0: FixedColumnWidth(150),
-        1: FixedColumnWidth(100),
-      },
-      children: [
-        // Header Row
-        TableRow(
+  return Table(
+    border: TableBorder.all(color: Colors.black),
+    columnWidths: {
+      0: FixedColumnWidth(150),
+      1: FixedColumnWidth(150),
+      2: FixedColumnWidth(100),
+    },
+    children: [
+      // Header Row
+      TableRow(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              'Category',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              'Product Name',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              'Quantity',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+      // Data Rows
+      ...analyticController.orderedProducts.entries.map((entry) {
+        var productName = entry.key;
+        var category = entry.value['category'];  // Accessing category from the value map
+        var quantity = entry.value['quantity'];  // Accessing quantity from the value map
+        return TableRow(
           children: [
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Text(
-                'Category',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
+              child: Text(category),
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Text(
-                'Product Name',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
+              child: Text(productName),
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Text(
-                'Quantity',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
+              child: Text(quantity.toString()),
             ),
           ],
-        ),
-        // Data Rows
-        ...analyticController.orderedProducts.entries.map((entry) {
-          var productName = entry.key;
-          var category = entry.key;
-          var quantity = entry.value;
-          return TableRow(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(category),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(productName),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(quantity.toString()),
-              ),
-            ],
-          );
-        }).toList(),
-      ],
-    );
-  }
+        );
+      }).toList(),
+    ],
+  );
+}
 }

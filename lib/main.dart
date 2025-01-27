@@ -84,7 +84,7 @@ class MyApp extends StatelessWidget {
       ),
       defaultTransition: Transition.fadeIn,
       transitionDuration: const Duration(milliseconds: 0),
-      initialRoute: Routes.login,
+      initialRoute: Routes.landing,
       getPages: Routes.pages,
       // Enable smooth scrolling
       scrollBehavior: AppScrollBehavior(),
