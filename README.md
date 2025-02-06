@@ -25,4 +25,4 @@ Farmlink is a platform that helps farmers sell their local produce directly to c
 	•	Backend: Firebase Firestore & Firebase Authentication
 	•	State Management: GetX
 
-📸 Screenshots
+
