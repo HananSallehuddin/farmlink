@@ -1,16 +1,28 @@
-# farmlink
+🌱 Farmlink
 
-A new Flutter project.
+Connecting farmers with local buyers efficiently
 
-## Getting Started
+📌 Overview
 
-This project is a starting point for a Flutter application.
+Farmlink is a platform that helps farmers sell their local produce directly to consumers. It provides features like:
+	•	Listing and managing local produce 🥦🍎
+	•	Placing and tracking orders 📦
+	•	Chatting with sellers and automated chatbot 💬
+	•	Reviewing and rating produce ⭐
+	•	Analyzing sales and trends 📊
 
-A few resources to get you started if this is your first Flutter project:
+🚀 Features
+	•	User Authentication: Register/Login as a seller or customer
+	•	Product Listings: Add, edit, and remove farm produce
+	•	Cart & Checkout: Seamless shopping experience
+	•	Order Tracking: Monitor order status and history
+	•	Chat System: Communicate directly with sellers or chat with chatbot
+	•	Analytics Dashboard: View sales trends and insights
+	•	Recycle System: Manage expired/recycled products
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+🛠️ Tech Stack
+	•	Frontend: Flutter (Dart)
+	•	Backend: Firebase Firestore & Firebase Authentication
+	•	State Management: GetX
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+📸 Screenshots
