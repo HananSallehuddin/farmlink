@@ -42,6 +42,7 @@ class _ChatRoomListUIState extends State<ChatRoomListUI>
   Future<void> _initializeData() async {
     try {
       isLoading.value = true;
+      //refresh chat rooms from controller
       await chatController.refreshChatRooms();
       // Notification service automatically listens through setupNotificationListeners()
       await notificationService.updateUnreadChatCount();
@@ -51,7 +52,7 @@ class _ChatRoomListUIState extends State<ChatRoomListUI>
       isLoading.value = false;
     }
   }
-
+  // when user pulls to refresh
   Future<void> _refreshChatRooms() async {
     try {
       isRefreshing.value = true;
@@ -187,7 +188,7 @@ class _ChatRoomListUIState extends State<ChatRoomListUI>
       );
     });
   }
-
+  //individual chat room tile
   Widget _buildChatRoomTile(ChatRoom chatRoom) {
     final currentUser = loginController.currentUser.value;
     if (currentUser == null) return SizedBox.shrink();
@@ -195,7 +196,7 @@ class _ChatRoomListUIState extends State<ChatRoomListUI>
     String displayName = '';
     String avatarLetter = '?';
     bool isUnread = false;
-
+    //determine chatroom participant and unread status
     if (currentUser.uid == chatRoom.customerId) {
       displayName = chatRoom.sellerName;
       avatarLetter = displayName.isNotEmpty ? displayName[0].toUpperCase() : 'S';

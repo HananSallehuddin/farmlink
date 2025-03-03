@@ -13,9 +13,12 @@ class ChatController extends GetxController {
   final LoginController loginController = Get.find<LoginController>();
   final NotificationService notificationService = Get.find<NotificationService>();
 
+  //holds all chat rooms for the current user.
   var chatRooms = <ChatRoom>[].obs;
+  //holds the messages for the current chat room.
   var currentMessages = <ChatMessage>[].obs;
   var isLoading = false.obs;
+  //listen to changes in the chat rooms and messages in real time.
   StreamSubscription? _chatRoomsSubscription;
   StreamSubscription? _messagesSubscription;
 
@@ -26,6 +29,7 @@ class ChatController extends GetxController {
     refreshChatRooms();
   }
 
+  //listen to changes in the chat rooms and messages in real time.
   void setupChatRoomsListener() {
     User? currentUser = _auth.currentUser;
     if (currentUser == null) return;
@@ -51,7 +55,7 @@ class ChatController extends GetxController {
           },
         );
   }
-
+ //refresh  and fetch all the chat rooms for the current user.
   Future<void> refreshChatRooms() async {
     try {
       isLoading.value = true;
@@ -87,6 +91,7 @@ class ChatController extends GetxController {
     }
   }
 
+  //load mesages for that specific room
   Future<void> loadMessages(String chatRoomId) async {
     try {
       isLoading.value = true;
@@ -159,7 +164,7 @@ class ChatController extends GetxController {
       print('Error marking chat room as read: $e');
     }
   }
-
+  //send message to specific chat room
   Future<void> sendMessage(String chatRoomId, String message,
       {String? productId, String? productName}) async {
     try {
@@ -211,7 +216,7 @@ class ChatController extends GetxController {
 
       // Add message to batch
       batch.set(messageRef, newMessage.toJson());
-
+      //batch used for atomic operation to send messages also for notification
       // Update chat room's last message
       batch.update(
         _firestore.collection('chatRooms').doc(chatRoomId),

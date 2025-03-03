@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:farmlink/models/UserModel.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -100,106 +101,121 @@ class _OrdersUIState extends State<OrdersUI> with SingleTickerProviderStateMixin
   }
 
   Widget _buildOrderCard({
-    required String orderId,
-    required Map<String, dynamic> orderData,
-  }) {
-    final orderDate = (orderData['orderDate'] as Timestamp).toDate();
-    final formattedDate = DateFormat('MMM dd, yyyy, hh:mm a').format(orderDate);
-    final status = orderData['status'] as String;
-    final totalAmount = orderData['totalAmount'] as double;
-    final products = List<Map<String, dynamic>>.from(orderData['products'] ?? []);
-    final currentRole = Get.find<UserController>().currentUser.value?.role;
-    final quantities = Map<String, dynamic>.from(orderData['quantities'] ?? {});
+  required String orderId,
+  required Map<String, dynamic> orderData,
+}) {
+  final orderDate = (orderData['orderDate'] as Timestamp).toDate();
+  final formattedDate = DateFormat('MMM dd, yyyy, hh:mm a').format(orderDate);
+  final status = orderData['status'] as String;
+  final totalAmount = orderData['totalAmount'] as double;
+  final products = List<Map<String, dynamic>>.from(orderData['products'] ?? []);
+  final currentRole = Get.find<UserController>().currentUser.value?.role;
+  final quantities = Map<String, dynamic>.from(orderData['quantities'] ?? {});
+  final userId = orderData['userId'] as String; // Customer ID from orderData
+  final shippingAddress = orderData['shippingAddress'] as String; // Get shipping address from orderData
 
-    if (currentRole == 'Seller') {
-      final currentUserId = FirebaseAuth.instance.currentUser?.uid;
-      products.removeWhere((product) => 
-        product['userRef']?.id != currentUserId && product['sellerId'] != currentUserId
-      );
-    }
-
-    return Card(
-      elevation: 4,
-      margin: EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: _getStatusColor(status).withOpacity(0.1),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Order #${orderId.substring(0, 8)}',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      formattedDate,
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-                _buildStatusChip(status),
-              ],
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Products',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                SizedBox(height: 8),
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  itemCount: products.length,
-                  itemBuilder: (context, index) {
-                    final product = products[index];
-                    final quantity = quantities[product['pid']] ?? 1;
-                    return _buildProductItem(product, quantity);
-                  },
-                ),
-                SizedBox(height: 16),
-                Text(
-                  'Total Amount: \RM${totalAmount.toStringAsFixed(2)}',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                if (currentRole == 'Seller') _buildStatusButton(orderId, status),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+  // For sellers, filter products based on seller ID
+  if (currentRole == 'Seller') {
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    products.removeWhere((product) =>
+        product['userRef']?.id != currentUserId &&
+        product['sellerId'] != currentUserId);
   }
+
+  return Card(
+    elevation: 4,
+    margin: EdgeInsets.only(bottom: 16),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: double.infinity,
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: _getStatusColor(status).withOpacity(0.1),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Order #${orderId.substring(0, 8)}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    formattedDate,
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+              _buildStatusChip(status),
+            ],
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Products Section
+              Text(
+                'Products',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              SizedBox(height: 8),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: products.length,
+                itemBuilder: (context, index) {
+                  final product = products[index];
+                  final quantity = quantities[product['pid']] ?? 1;
+                  return _buildProductItem(product, quantity);
+                },
+              ),
+              SizedBox(height: 16),
+              // Total Amount
+              Text(
+                'Total Amount: \RM${totalAmount.toStringAsFixed(2)}',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              SizedBox(height: 16),
+              // Shipping Address
+              Text(
+                'Shipping Address: $shippingAddress',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              SizedBox(height: 16),
+              if (currentRole == 'Seller') _buildStatusButton(orderId, status),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _buildProductItem(Map<String, dynamic> product, int quantity) {
     return Row(
@@ -280,6 +296,42 @@ class _OrdersUIState extends State<OrdersUI> with SingleTickerProviderStateMixin
       ),
     );
   }
+
+  Future<Map<String, dynamic>> _getCustomerAddress(DocumentReference userRef) async {
+  try {
+    // Fetch the user document using the reference
+    final userDoc = await userRef.get();
+
+    if (!userDoc.exists) {
+      return {'username': 'Unknown Customer', 'address': 'Address not available'};
+    }
+
+    final userData = userDoc.data() as Map<String, dynamic>;
+
+    // Parse the user data to a UserModel instance
+    final user = UserModel.fromJson(userData);
+
+    // Check if the user has addresses
+    if (user.addresses == null || user.addresses!.isEmpty) {
+      return {
+        'username': user.username,
+        'address': 'No addresses available',
+      };
+    }
+
+    // Assuming the first address is the default/selected one
+    final selectedAddress = user.addresses!.first;
+
+    return {
+      'username': user.username,
+      'address': '${selectedAddress.address}, ${selectedAddress.city}, '
+          '${selectedAddress.state} - ${selectedAddress.zipCode}',
+    };
+  } catch (e) {
+    print('Error fetching customer address: $e');
+    return {'username': 'Unknown Customer', 'address': 'Error retrieving address'};
+  }
+}
 
   String _getNextStatus(String currentStatus) {
     switch (currentStatus) {

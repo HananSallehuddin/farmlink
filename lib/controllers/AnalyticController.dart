@@ -13,14 +13,11 @@ RxMap<String, Map<String, double>> monthlySales = <String, Map<String, double>>{
 var orderedProducts = <String, Map<String, dynamic>>{}.obs;
 String hardcodedSellerId = 'Xqc1QauV1heZjHtzfnJdQrSoXAO2';
 
-
-
 @override
 void onInit() {
   super.onInit();
   print('onInit called');
 }
-
 
 Future<void> fetchSalesData() async {
 
@@ -34,8 +31,6 @@ Future<void> fetchSalesData() async {
       }
 
     double totalSales = 0.0;
-    
-
     print('Real Seller ID: $sellerId');
 
     // Fetch orders for the current seller
@@ -43,14 +38,11 @@ Future<void> fetchSalesData() async {
         .collection('orders')
         .where('sellerIds', arrayContains: sellerId)
         .get();
-
     print('Fetched orders count for real seller: ${querySnapshot.docs.length}');
-
     if (querySnapshot.docs.isEmpty) {
       print('No orders found for this seller.');
       return; // Exit early if no orders are found
     }
-
     // Process each order
     for (var doc in querySnapshot.docs) {
       var orderData = doc.data() as Map<String, dynamic>;

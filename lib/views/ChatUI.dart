@@ -56,7 +56,7 @@ class _ChatUIState extends State<ChatUI> with AutomaticKeepAliveClientMixin {
       isLoading.value = false;
     }
   }
-
+  // load chat room data from fs using chatroom id
   Future<void> _loadChatRoom() async {
     try {
       final chatRoomId = Get.arguments as String?;
@@ -227,7 +227,7 @@ class _ChatUIState extends State<ChatUI> with AutomaticKeepAliveClientMixin {
       ),
     );
   }
-
+  // message displayed in listview
   Widget _buildMessageList() {
     return Obx(() {
       if (isLoading.value) {
@@ -300,7 +300,7 @@ class _ChatUIState extends State<ChatUI> with AutomaticKeepAliveClientMixin {
       );
     });
   }
-
+   // message bubble design
   Widget _buildMessageBubble(ChatMessage message, bool isMyMessage) {
     if (message.type == MessageType.system) {
       return Center(
@@ -372,7 +372,7 @@ class _ChatUIState extends State<ChatUI> with AutomaticKeepAliveClientMixin {
       ),
     );
   }
-
+  // message input design
   Widget _buildMessageInput() {
     return Container(
       padding: EdgeInsets.all(8),
@@ -436,3 +436,5 @@ class _ChatUIState extends State<ChatUI> with AutomaticKeepAliveClientMixin {
     super.dispose();
   }
 }
+
+//for individual chat message
